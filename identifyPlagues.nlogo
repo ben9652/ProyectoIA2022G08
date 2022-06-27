@@ -95,17 +95,17 @@ to busqueda-centro-adecuado
   [
     [insecto] -> ; Se recoge el centro de coordenadas de cada elemento
 
-    ; Aquí calculo el cuadrado de la diferencia de las coordenadas x
-    ; del centro del insecto con el insecto nuevo que se va a insertar
+    ; Aquí calculo la diferencia de las coordenadas x del centro del
+    ; insecto con el insecto nuevo que se va a insertar
     let x1-x0 (item 0 insecto - item 0 coord)
 
-    ; Aquí calculo el cuadrado de la diferencia de las coordenadas y
-    ; del centro del insecto con el insecto nuevo que se va a insertar
+    ; Aquí calculo la diferencia de las coordenadas y del centro del
+    ; insecto con el insecto nuevo que se va a insertar
     let y1-y0 (item 1 insecto - item 1 coord)
 
     ; Si el centro del insecto nuevo que se va a insertar tiene una
-    ; distancia menor o igual a 40, se buscará otro centro de coordenada
-    ; en el que insertarlo.
+    ; distancia menor o igual a 40 tanto en las x como en las y, se
+    ; buscará otro centro de coordenada en el que insertarlo.
     ; Si resulta ser falsa la proposición, se considera un centro de
     ; coordenadas correcto para la inserción del insecto.
     if abs y1-y0 < 40 OR abs x1-x0 < 40
