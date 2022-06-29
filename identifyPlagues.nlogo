@@ -10,7 +10,34 @@ globals
   center-all ; centro de coordenadas de cada insecto generado
   coord      ; coordenada de prueba
 
+  direccion-giro
+
   no-hay-insecto-nuevo ; variable booleana usada para la generación de los insectos
+]
+
+turtles-own
+[
+  tiempo-desde-ultimo-encuentro
+  buscando
+  choque-frontal
+  choque-hueco-angosto
+  se-acerca-a-hueco
+  choca-oblicuamente-derecha-nada
+  choca-oblicuamente-izquierda-nada
+  choque-oblicuo-rodeado
+  va-al-norte
+  va-al-este
+  va-al-sur
+  va-al-oeste
+  enfrente    ; indica si hay un insecto enfrente
+  derecha     ; indica si hay un insecto a su derecha
+  izquierda   ; indica si hay un insecto a su izquierda
+  e-d         ; indica si hay un insecto enfrente tirando para su derecha
+  e-i         ; indica si hay un insecto enfrente tirando para la izquierda
+  a-d         ; indica si hay un insecto atrás tirando para la derecha
+  a-i         ; indica si hay un insecto atrás tirando para la izquierda
+
+  posicionado ; indica si el agente ya se posicionó para empezar a recorrer el insecto
 ]
 
 to setup
@@ -77,7 +104,7 @@ to setup
       set no-hay-insecto-nuevo true
       while [no-hay-insecto-nuevo]
       [
-        busqueda-centro-adecuado
+        busqueda-centro-adecuado         ; Hace que no se superpongan insectos
       ]
     ]
     set center-gp lput coord center-gp   ; Agrego la coordenada del gusano perforador
@@ -87,6 +114,53 @@ to setup
 
     crear-gusano-perforador
     set i i + 1
+  ]
+
+  reset-ticks
+end
+
+to agregar-tortuga
+  let x-cor-turtle 0
+  let y-cor-turtle 0
+  let esRoja true
+  while [esRoja = true]
+  [
+    set x-cor-turtle random-xcor
+    set y-cor-turtle random-ycor
+
+    ask (patch x-cor-turtle y-cor-turtle)
+    [
+      if pcolor != red [set esRoja false]
+    ]
+  ]
+
+  create-turtles 1
+  [
+    setxy x-cor-turtle y-cor-turtle
+    set color yellow
+    set tiempo-desde-ultimo-encuentro 999
+    set buscando true
+
+    set choque-frontal false
+    set choque-hueco-angosto false
+    set se-acerca-a-hueco false
+    set choca-oblicuamente-derecha-nada false
+    set choca-oblicuamente-izquierda-nada false
+    set choque-oblicuo-rodeado false
+
+    set va-al-norte false
+    set va-al-este false
+    set va-al-sur false
+    set va-al-oeste false
+
+    set enfrente false
+    set izquierda false
+    set e-d false
+    set e-i false
+    set a-d false
+    set a-i false
+
+    set posicionado false
   ]
 end
 
@@ -285,12 +359,348 @@ to crear-gusano-perforador
     [set pcolor red]
   ]
 end
+
+to go
+  ask turtles [search]
+  tick
+end
+
+to search
+  ifelse [pcolor] of patch-ahead 1 = red [set enfrente true] [set enfrente false]
+  ifelse [pcolor] of patch-right-and-ahead 90 1 = red [set derecha true] [set derecha false]
+  ifelse [pcolor] of patch-left-and-ahead 90 1 = red [set izquierda true] [set izquierda false]
+  ifelse [pcolor] of patch-right-and-ahead 45 1 = red [set e-d true] [set e-d false]
+  ifelse [pcolor] of patch-left-and-ahead 45 1 = red [set e-i true] [set e-i false]
+  ifelse [pcolor] of patch-right-and-ahead 135 1 = red [set a-d true] [set a-d false]
+  ifelse [pcolor] of patch-left-and-ahead 135 1 = red [set a-i true] [set a-i false]
+
+  ifelse buscando = true
+  [
+    ifelse tiempo-desde-ultimo-encuentro <= 20
+    [right (random 181) - 20]
+    [right (random 21) - 10]
+
+    ifelse enfrente OR e-d OR e-i
+    [
+      set buscando false
+    ]
+    [
+      if enfrente = yellow
+      [right 180]
+
+      forward 1
+      set tiempo-desde-ultimo-encuentro tiempo-desde-ultimo-encuentro + 1
+    ]
+  ]
+  [
+    while [NOT posicionado]
+    [posicionar]
+  ]
+end
+
+to posicionar
+  if  enfrente AND NOT derecha AND NOT izquierda AND NOT e-d AND NOT e-i
+  [
+    choca-de-frente
+    set posicionado true
+  ]
+
+  if enfrente AND derecha AND izquierda AND e-d AND e-i AND a-d AND a-i
+  [
+    choca-de-frente-en-hueco
+    set posicionado true
+  ]
+
+  if e-i AND e-d AND NOT a-i AND NOT a-d
+  [
+    acercamiento-a-hueco
+    set posicionado true
+  ]
+
+  if e-i AND NOT e-d AND NOT derecha
+  [
+    choque-oblicuo-derecha-nada
+    set posicionado true
+  ]
+
+  if e-d AND NOT e-i AND NOT izquierda
+  [
+    choque-oblicuo-izquierda-nada
+    set posicionado true
+  ]
+
+  if enfrente AND derecha AND izquierda AND e-d AND e-i AND NOT a-d AND NOT a-i
+  [
+    choque-agente-se-encierra
+    set posicionado true
+  ]
+end
+
+to choca-de-frente
+  set choque-frontal true
+
+  if heading > 45 AND heading < 135
+  [
+    ifelse heading > 45 AND heading < 90
+    [
+      set heading 0
+      set va-al-norte true
+    ]
+    [
+      set heading 180
+      set va-al-sur true
+    ]
+  ]
+
+  if heading > 135 AND heading < 225
+  [
+    ifelse heading > 135 AND heading < 180
+    [
+      set heading 90
+      set va-al-este true
+    ]
+    [
+      set heading 270
+      set va-al-oeste true
+    ]
+  ]
+
+  if heading > 225 AND heading < 315
+  [
+    ifelse heading > 225 AND heading < 270
+    [
+      set heading 180
+      set va-al-sur true
+    ]
+    [
+      set heading 0
+      set va-al-norte true
+    ]
+  ]
+
+  if heading > 315 AND heading < 360 OR heading >= 0 AND heading < 45
+  [
+    ifelse heading > 315 AND heading < 360
+    [
+      set heading 270
+      set va-al-oeste true
+    ]
+    [
+      set heading 90
+      set va-al-este true
+    ]
+  ]
+
+  set va-al-norte false
+  set va-al-este false
+  set va-al-sur false
+  set va-al-oeste false
+
+  set choque-frontal false
+end
+
+to choca-de-frente-en-hueco
+  set choque-hueco-angosto true
+
+  if heading > 45 AND heading < 135
+  [
+    set heading 270
+    set va-al-oeste true
+  ]
+
+  if heading > 135 AND heading < 225
+  [
+    set heading 0
+    set va-al-norte true
+  ]
+
+  if heading > 225 AND heading < 315
+  [
+    set heading 90
+    set va-al-este true
+  ]
+
+  if heading > 315 AND heading < 360 OR heading >= 0 AND heading < 45
+  [
+    set heading 180
+    set va-al-sur true
+  ]
+
+  set va-al-norte false
+  set va-al-este false
+  set va-al-sur false
+  set va-al-oeste false
+
+  set choque-hueco-angosto false
+end
+
+to acercamiento-a-hueco
+  set se-acerca-a-hueco true
+
+  if heading > 0 AND heading < 90
+  [
+    set heading 90
+    set va-al-este true
+  ]
+
+  if heading > 90 AND heading < 180
+  [
+    set heading 180
+    set va-al-sur true
+  ]
+
+  if heading > 180 AND heading < 270
+  [
+    set heading 270
+    set va-al-oeste true
+  ]
+
+  if heading > 270 AND heading < 360
+  [
+    set heading 0
+    set va-al-norte true
+  ]
+
+  set se-acerca-a-hueco false
+end
+
+to choque-oblicuo-derecha-nada
+  set choca-oblicuamente-derecha-nada true
+
+  if heading > 0 AND heading < 90
+  [
+    set heading 90
+    set va-al-este true
+  ]
+
+  if heading > 90 AND heading < 180
+  [
+    set heading 180
+    set va-al-sur true
+  ]
+
+  if heading > 180 AND heading < 270
+  [
+    set heading 270
+    set va-al-oeste true
+  ]
+
+  if heading > 270 AND heading < 360
+  [
+    set heading 0
+    set va-al-norte true
+  ]
+
+  set va-al-norte false
+  set va-al-este false
+  set va-al-sur false
+  set va-al-oeste false
+
+  set choca-oblicuamente-derecha-nada false
+end
+
+to choque-oblicuo-izquierda-nada
+  set choca-oblicuamente-izquierda-nada true
+
+  if heading > 0 AND heading < 90
+  [
+    set heading 90
+    set va-al-este true
+  ]
+
+  if heading > 90 AND heading < 180
+  [
+    set heading 180
+    set va-al-sur true
+  ]
+
+  if heading > 180 AND heading < 270
+  [
+    set heading 270
+    set va-al-oeste true
+  ]
+
+  if heading > 270 AND heading < 360
+  [
+    set heading 0
+    set va-al-norte true
+  ]
+
+  set va-al-norte false
+  set va-al-este false
+  set va-al-sur false
+  set va-al-oeste false
+  set choca-oblicuamente-izquierda-nada false
+end
+
+to choque-agente-se-encierra
+  set choque-oblicuo-rodeado true
+
+  if heading > 0 AND heading < 90
+  [
+    ifelse heading > 0 AND heading < 45
+    [
+      set heading 270
+      set va-al-oeste true
+    ]
+    [
+      set heading 180
+      set va-al-sur true
+    ]
+  ]
+
+  if heading > 90 AND heading < 180
+  [
+    ifelse heading > 90 AND heading < 135
+    [
+      set heading 0
+      set va-al-norte true
+    ]
+    [
+      set heading 270
+      set va-al-oeste true
+    ]
+  ]
+
+  if heading > 180 AND heading < 270
+  [
+    ifelse heading > 180 AND heading < 270
+    [
+      set heading 90
+      set va-al-este true
+    ]
+    [
+      set heading 0
+      set va-al-norte true
+    ]
+  ]
+
+  if heading > 270 AND heading < 360
+  [
+    ifelse heading > 270 AND heading < 315
+    [
+      set heading 180
+      set va-al-sur true
+    ]
+    [
+      set heading 90
+      set va-al-este true
+    ]
+  ]
+
+  set va-al-norte false
+  set va-al-este false
+  set va-al-sur false
+  set va-al-oeste false
+
+  set choque-oblicuo-rodeado false
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-2831
-2632
+261
+51
+2882
+2673
 -1
 -1
 13.0
@@ -325,7 +735,41 @@ NIL
 T
 OBSERVER
 NIL
+S
 NIL
+NIL
+1
+
+BUTTON
+56
+151
+182
+187
+NIL
+agregar-tortuga
+NIL
+1
+T
+OBSERVER
+NIL
+T
+NIL
+NIL
+1
+
+BUTTON
+80
+768
+144
+802
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+G
 NIL
 NIL
 1
