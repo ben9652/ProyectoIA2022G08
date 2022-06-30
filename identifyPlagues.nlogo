@@ -156,6 +156,8 @@ to setup
     set i i + 1
   ]
 
+  agregar-tortuga
+
   reset-ticks
 end
 
@@ -178,10 +180,6 @@ to agregar-tortuga
   [
     setxy x-cor-turtle y-cor-turtle
     set color yellow
-
-    set label perforadores-menores-encontrados
-    set label gusanos-cuarteadores-encontrados
-    set label gusanos-perforadores-encontrados
 
     set buscando true
     set guiado false
@@ -1541,9 +1539,9 @@ ticks
 
 BUTTON
 56
-81
+241
 296
-267
+427
 NIL
 setup
 NIL
@@ -1552,23 +1550,6 @@ T
 OBSERVER
 NIL
 S
-NIL
-NIL
-1
-
-BUTTON
-56
-286
-294
-438
-NIL
-agregar-tortuga
-NIL
-1
-T
-OBSERVER
-NIL
-T
 NIL
 NIL
 1
@@ -1602,7 +1583,7 @@ T
 T
 OBSERVER
 NIL
-NIL
+I
 NIL
 NIL
 1
