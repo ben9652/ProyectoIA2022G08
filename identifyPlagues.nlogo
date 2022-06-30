@@ -1540,10 +1540,10 @@ ticks
 30.0
 
 BUTTON
-12
-80
-252
-266
+56
+81
+296
+267
 NIL
 setup
 NIL
@@ -1557,10 +1557,10 @@ NIL
 1
 
 BUTTON
-10
-284
-248
-436
+56
+286
+294
+438
 NIL
 agregar-tortuga
 NIL
@@ -1574,10 +1574,10 @@ NIL
 1
 
 BUTTON
-12
-454
-248
-586
+56
+456
+292
+588
 NIL
 go
 T
@@ -1591,10 +1591,10 @@ NIL
 1
 
 BUTTON
-16
+61
 616
-252
-792
+297
+797
 NIL
 identificar
 T
@@ -1608,10 +1608,10 @@ NIL
 1
 
 MONITOR
-4361
-106
-6462
-307
+4306
+516
+4892
+722
 Perforadores menores
 perforadores-menores-encontrados
 17
@@ -1619,10 +1619,10 @@ perforadores-menores-encontrados
 50
 
 MONITOR
-4381
-626
-6497
-827
+4311
+1061
+4912
+1267
 Gusanos cuarteadores
 gusanos-cuarteadores-encontrados
 17
@@ -1630,10 +1630,10 @@ gusanos-cuarteadores-encontrados
 50
 
 MONITOR
-4391
-1221
-6512
-1422
+4316
+1656
+4902
+1862
 Gusanos perforadores
 gusanos-perforadores-encontrados
 17
