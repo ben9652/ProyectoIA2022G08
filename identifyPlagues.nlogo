@@ -178,7 +178,10 @@ to agregar-tortuga
   [
     setxy x-cor-turtle y-cor-turtle
     set color yellow
-    set tiempo-desde-ultimo-encuentro 999
+
+    set label perforadores-menores-encontrados
+    set label gusanos-cuarteadores-encontrados
+    set label gusanos-perforadores-encontrados
 
     set buscando true
     set guiado false
@@ -823,7 +826,7 @@ to pintar-automatico
 
       if i-amarillo
       [
-        ifelse partes-pintadas-encontradas < 5
+        ifelse partes-pintadas-encontradas <= 10
         [
           set partes-pintadas-encontradas partes-pintadas-encontradas + 1
         ]
@@ -845,7 +848,7 @@ to pintar-automatico
 
       if d-amarillo
       [
-        ifelse partes-pintadas-encontradas <= 6
+        ifelse partes-pintadas-encontradas <= 10
         [
           set partes-pintadas-encontradas partes-pintadas-encontradas + 1
         ]
@@ -1510,10 +1513,10 @@ to posicionar
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-261
-51
-4182
-2673
+326
+56
+4247
+2678
 -1
 -1
 13.0
@@ -1537,10 +1540,10 @@ ticks
 30.0
 
 BUTTON
-39
-59
-102
-92
+12
+80
+252
+266
 NIL
 setup
 NIL
@@ -1554,10 +1557,10 @@ NIL
 1
 
 BUTTON
-56
-151
-182
-187
+10
+284
+248
+436
 NIL
 agregar-tortuga
 NIL
@@ -1571,10 +1574,10 @@ NIL
 1
 
 BUTTON
-80
-768
-144
-802
+12
+454
+248
+586
 NIL
 go
 T
@@ -1588,44 +1591,10 @@ NIL
 1
 
 BUTTON
-91
-891
-157
-927
-NIL
-pintar
-NIL
-1
-T
-OBSERVER
-NIL
-A
-NIL
-NIL
-1
-
-BUTTON
-116
-1016
-197
-1052
-NIL
-avanzar
-NIL
-1
-T
-OBSERVER
-NIL
-D
-NIL
-NIL
-1
-
-BUTTON
-71
-1126
-162
-1162
+16
+616
+252
+792
 NIL
 identificar
 T
@@ -1637,6 +1606,39 @@ NIL
 NIL
 NIL
 1
+
+MONITOR
+4361
+106
+6462
+307
+Perforadores menores
+perforadores-menores-encontrados
+17
+1
+50
+
+MONITOR
+4381
+626
+6497
+827
+Gusanos cuarteadores
+gusanos-cuarteadores-encontrados
+17
+1
+50
+
+MONITOR
+4391
+1221
+6512
+1422
+Gusanos perforadores
+gusanos-perforadores-encontrados
+17
+1
+50
 
 @#$#@#$#@
 ## WHAT IS IT?
