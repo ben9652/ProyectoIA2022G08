@@ -972,11 +972,11 @@ to pintar
           set partes-pintadas-encontradas partes-pintadas-encontradas + 1
         ]
         [
-          if partes-pintadas >= 46 AND partes-pintadas <= 52
+          if partes-pintadas >= 46 AND partes-pintadas <= 60
           [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
-          if partes-pintadas >= 104 AND partes-pintadas <= 110
+          if partes-pintadas >= 104 AND partes-pintadas <= 120
           [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
-          if partes-pintadas >= 86 AND partes-pintadas <= 92
+          if partes-pintadas >= 86 AND partes-pintadas <= 100
           [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
           right 90
           set buscando true
@@ -994,9 +994,9 @@ to pintar
           set partes-pintadas-encontradas partes-pintadas-encontradas + 1
         ]
         [
-          if partes-pintadas = 46 [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
-          if partes-pintadas = 104 [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
-          if partes-pintadas = 86 [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
+          if partes-pintadas >= 46 AND partes-pintadas <= 60 [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
+          if partes-pintadas >= 104 AND partes-pintadas <= 120 [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
+          if partes-pintadas >= 86 AND partes-pintadas <= 100 [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
           left 90
           set buscando true
           set partes-pintadas-encontradas 0
