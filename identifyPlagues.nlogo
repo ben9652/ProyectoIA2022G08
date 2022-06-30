@@ -8,36 +8,67 @@ globals
   center-gc  ; centro de coordenadas de cada gusano cuarteador
   center-gp  ; centro de coordenadas de cada gusano perforador
   center-all ; centro de coordenadas de cada insecto generado
-  coord      ; coordenada de prueba
+
+  coord-pm   ; coordenada de prueba de perforador menor
+  coord-gc   ; coordenada de prueba de gusano cuarteador
+  coord-gp   ; coordenada de prueba de gusano perforador
+
+  perforadores-menores-encontrados
+  gusanos-cuarteadores-encontrados
+  gusanos-perforadores-encontrados
 
   direccion-giro
 
-  no-hay-insecto-nuevo ; variable booleana usada para la generación de los insectos
+  no-hay-pm-nuevo ; variable booleana usada para la generación de perforadores menores
+  no-hay-gc-nuevo ; variable booleana usada para la generación de gusanos cuarteadores
+  no-hay-gp-nuevo ; variable booleana usada para la generación de gusanos perforadores
 ]
 
 turtles-own
 [
   tiempo-desde-ultimo-encuentro
-  buscando
+  buscando ; indica si el agente está buscando insectos
+  guiado ; indica si el agente ya se guió con el ángulo adecuado para bordear el insecto
+  posicionado ; indica si el agente está por fin en posición para identificar al insecto
+
+  partes-pintadas-encontradas
+  partes-pintadas
+
   choque-frontal
+  choca-en-esquina-vacio-izquierda
+  choca-en-esquina-vacio-derecha
   choque-hueco-angosto
   se-acerca-a-hueco
   choca-oblicuamente-derecha-nada
   choca-oblicuamente-izquierda-nada
   choque-oblicuo-rodeado
-  va-al-norte
-  va-al-este
-  va-al-sur
-  va-al-oeste
-  enfrente    ; indica si hay un insecto enfrente
-  derecha     ; indica si hay un insecto a su derecha
-  izquierda   ; indica si hay un insecto a su izquierda
-  e-d         ; indica si hay un insecto enfrente tirando para su derecha
-  e-i         ; indica si hay un insecto enfrente tirando para la izquierda
-  a-d         ; indica si hay un insecto atrás tirando para la derecha
-  a-i         ; indica si hay un insecto atrás tirando para la izquierda
 
-  posicionado ; indica si el agente ya se posicionó para empezar a recorrer el insecto
+  sentido-establecido
+  sentido-horario
+
+  e-rojo       ; indica si hay un insecto enfrente
+  d-rojo        ; indica si hay un insecto a su derecha
+  i-rojo      ; indica si hay un insecto a su izquierda
+  e-d-rojo            ; indica si hay un insecto enfrente tirando para su derecha
+  e-i-rojo            ; indica si hay un insecto enfrente tirando para la izquierda
+  a-d-rojo            ; indica si hay un insecto atrás tirando para la derecha
+  a-i-rojo            ; indica si hay un insecto atrás tirando para la izquierda
+
+  e-amarillo   ; indica si hay un cuadrado de insecto marcado enfrente
+  d-amarillo    ; indica si hay un cuadrado de insecto marcado a su derecha
+  i-amarillo  ; indica si hay un cuadrado de insecto marcado a su izquierda
+  e-d-amarillo        ; indica si hay un cuadrado de insecto marcado enfrente para su derecha
+  e-i-amarillo        ; indica si hay un cuadrado de insecto marcado enfrente para su izquierda
+  a-d-amarillo        ; indica si hay un cuadrado de insecto marcado atrás para la derecha
+  a-i-amarillo        ; indica si hay un cuadrado de insecto marcado atrás para la izquierda
+
+  e-vacio      ; indica si hay un cuadrado vacio enfrente del agente
+  d-vacio       ; indica si hay un cuadrado vacio a la derecha del agente
+  i-vacio     ; indica si hay un cuadrado vacio a la izquierda del agente
+  e-d-vacio           ; indica si hay un cuadrado vacio enfrente del agente para su derecha
+  e-i-vacio           ; indica si hay un cuadrado vacio enfrente del agente para su izquierda
+  a-d-vacio           ; indica si hay un cuadrado vacio atrás del agente a la derecha
+  a-i-vacio           ; indica si hay un cuadrado vacio atrás del agente a la izquierda
 ]
 
 to setup
@@ -54,61 +85,70 @@ to setup
   set num-all 0
 
   let i 0
-;  while [i < num-pm]
-;  [
-;    set coord list ((random 201) - 100) ((random 201) - 100)
-;    if num-all != 0
-;    [
-;      set no-hay-insecto-nuevo true
-;      while [no-hay-insecto-nuevo]
-;      [
-;        busqueda-centro-adecuado
-;      ]
-;    ]
-;    set center-pm lput coord center-pm   ; Agrego la coordenada del perforador menor
-;    set center-all lput coord center-all
-;
-;    set num-all num-all + 1
-;
-;    crear-perforador-menor
-;    set i i + 1
-;  ]
-
-;  set i 0
-;  while [i < num-gc]
-;  [
-;    set coord list ((random 201) - 100) ((random 201) - 100)
-;    if num-all != 0
-;    [
-;      set no-hay-insecto-nuevo true
-;      while [no-hay-insecto-nuevo]
-;      [
-;        busqueda-centro-adecuado
-;      ]
-;    ]
-;    set center-gc lput coord center-gc   ; Agrego la coordenada del gusano cuarteador
-;    set center-all lput coord center-all
-;
-;    set num-all num-all + 1
-;
-;    crear-gusano-cuarteador
-;    set i i + 1
-;  ]
-
-;  set i 0
-  while [i < num-gp]
+  while [i < num-pm]
   [
-    set coord list ((random 201) - 100) ((random 201) - 100)
+    ; La grilla es de 200x200. Pero para evitar el corte de perforadores menores, ubicaré su
+    ; centro en un cuadrado centrado de (300-20)x(200-20) = 280x180, ya que 20 es el largo
+    ; máximo de un perforador menor.
+    set coord-pm list ((random 281) - 140) ((random 181) - 90)
     if num-all != 0
     [
-      set no-hay-insecto-nuevo true
-      while [no-hay-insecto-nuevo]
+      set no-hay-pm-nuevo true
+      while [no-hay-pm-nuevo]
       [
-        busqueda-centro-adecuado         ; Hace que no se superpongan insectos
+        busqueda-centro-adecuado-pm
       ]
     ]
-    set center-gp lput coord center-gp   ; Agrego la coordenada del gusano perforador
-    set center-all lput coord center-all
+    set center-pm lput coord-pm center-pm   ; Agrego la coordenada del perforador menor
+    set center-all lput coord-pm center-all
+
+    set num-all num-all + 1
+
+    crear-perforador-menor
+    set i i + 1
+  ]
+
+  set i 0
+  while [i < num-gc]
+  [
+    ; La grilla es de 200x200. Pero para evitar el corte de gusanos cuarteadores, ubicaré su
+    ; centro en un cuadrado centrado de (300-40)x(200-40) = 260x160, ya que 40 es el largo
+    ; máximo de un gusano cuarteador.
+    set coord-gc list ((random 261) - 130) ((random 161) - 80)
+    if num-all != 0
+    [
+      set no-hay-gc-nuevo true
+      while [no-hay-gc-nuevo]
+      [
+        busqueda-centro-adecuado-gc
+      ]
+    ]
+    set center-gc lput coord-gc center-gc   ; Agrego la coordenada del gusano cuarteador
+    set center-all lput coord-gc center-all
+
+    set num-all num-all + 1
+
+    crear-gusano-cuarteador
+    set i i + 1
+  ]
+
+  set i 0
+  while [i < num-gp]
+  [
+    ; La grilla es de 200x200. Pero para evitar el corte de gusanos perforadores, ubicaré su
+    ; centro en un cuadrado centrado de (300-39)x(200-39) = 261x161, ya que 39 es el largo
+    ; máximo de un gusano perforador
+    set coord-gp list ((random 262) - 130) ((random 162) - 80)
+    if num-all != 0
+    [
+      set no-hay-gp-nuevo true
+      while [no-hay-gp-nuevo]
+      [
+        busqueda-centro-adecuado-gp         ; Hace que no se superpongan insectos
+      ]
+    ]
+    set center-gp lput coord-gp center-gp   ; Agrego la coordenada del gusano perforador
+    set center-all lput coord-gp center-all
 
     set num-all num-all + 1
 
@@ -139,65 +179,391 @@ to agregar-tortuga
     setxy x-cor-turtle y-cor-turtle
     set color yellow
     set tiempo-desde-ultimo-encuentro 999
+
     set buscando true
+    set guiado false
+    set posicionado false
+
+    set partes-pintadas-encontradas 0
+    set partes-pintadas 0
+
+    set perforadores-menores-encontrados 0
+    set gusanos-cuarteadores-encontrados 0
+    set gusanos-perforadores-encontrados 0
 
     set choque-frontal false
+    set choca-en-esquina-vacio-izquierda false
+    set choca-en-esquina-vacio-derecha false
+    set choca-oblicuamente-derecha-nada false
+    set choca-oblicuamente-izquierda-nada false
     set choque-hueco-angosto false
     set se-acerca-a-hueco false
     set choca-oblicuamente-derecha-nada false
     set choca-oblicuamente-izquierda-nada false
     set choque-oblicuo-rodeado false
 
-    set va-al-norte false
-    set va-al-este false
-    set va-al-sur false
-    set va-al-oeste false
+    set sentido-establecido false
+    set sentido-horario false
 
-    set enfrente false
-    set izquierda false
-    set e-d false
-    set e-i false
-    set a-d false
-    set a-i false
+    set e-rojo false
+    set i-rojo false
+    set e-d-rojo false
+    set e-i-rojo false
+    set a-d-rojo false
+    set a-i-rojo false
 
-    set posicionado false
+    set e-amarillo false
+    set d-amarillo false
+    set i-amarillo false
+    set e-d-amarillo false
+    set e-i-amarillo false
+    set a-d-amarillo false
+    set a-i-amarillo false
+
+    set e-vacio false
+    set d-vacio false
+    set i-vacio false
+    set e-d-vacio false
+    set e-i-vacio false
+    set a-d-vacio false
+    set a-i-vacio false
   ]
 end
 
-to busqueda-centro-adecuado
+to busqueda-centro-adecuado-pm
   foreach center-all
   [
     [insecto] -> ; Se recoge el centro de coordenadas de cada elemento
 
     ; Aquí calculo la diferencia de las coordenadas x del centro del
     ; insecto con el insecto nuevo que se va a insertar
-    let x1-x0 (item 0 insecto - item 0 coord)
+    let x1-x0 (item 0 insecto - item 0 coord-pm)
 
     ; Aquí calculo la diferencia de las coordenadas y del centro del
     ; insecto con el insecto nuevo que se va a insertar
-    let y1-y0 (item 1 insecto - item 1 coord)
+    let y1-y0 (item 1 insecto - item 1 coord-pm)
 
     ; Si el centro del insecto nuevo que se va a insertar tiene una
     ; distancia menor o igual a 40 tanto en las x como en las y, se
     ; buscará otro centro de coordenada en el que insertarlo.
     ; Si resulta ser falsa la proposición, se considera un centro de
     ; coordenadas correcto para la inserción del insecto.
-    if abs y1-y0 < 40 OR abs x1-x0 < 40
+    if abs y1-y0 < 41 AND abs x1-x0 < 41
     [
-      set coord list ((random 201) - 100) ((random 201) - 100)
+      set coord-pm list ((random 281) - 140) ((random 181) - 90)
       stop
     ]
   ]
 
-  set no-hay-insecto-nuevo false
+  set no-hay-pm-nuevo false
+end
+
+to busqueda-centro-adecuado-gc
+  foreach center-all
+  [
+    [insecto] -> ; Se recoge el centro de coordenadas de cada elemento
+
+    ; Aquí calculo la diferencia de las coordenadas x del centro del
+    ; insecto con el insecto nuevo que se va a insertar
+    let x1-x0 (item 0 insecto - item 0 coord-gc)
+
+    ; Aquí calculo la diferencia de las coordenadas y del centro del
+    ; insecto con el insecto nuevo que se va a insertar
+    let y1-y0 (item 1 insecto - item 1 coord-gc)
+
+    ; Si el centro del insecto nuevo que se va a insertar tiene una
+    ; distancia menor o igual a 40 tanto en las x como en las y, se
+    ; buscará otro centro de coordenada en el que insertarlo.
+    ; Si resulta ser falsa la proposición, se considera un centro de
+    ; coordenadas correcto para la inserción del insecto.
+    if abs y1-y0 < 41 AND abs x1-x0 < 41
+    [
+      set coord-gc list ((random 261) - 130) ((random 161) - 80)
+      stop
+    ]
+  ]
+
+  set no-hay-gc-nuevo false
+end
+
+to busqueda-centro-adecuado-gp
+  foreach center-all
+  [
+    [insecto] -> ; Se recoge el centro de coordenadas de cada elemento
+
+    ; Aquí calculo la diferencia de las coordenadas x del centro del
+    ; insecto con el insecto nuevo que se va a insertar
+    let x1-x0 (item 0 insecto - item 0 coord-gp)
+
+    ; Aquí calculo la diferencia de las coordenadas y del centro del
+    ; insecto con el insecto nuevo que se va a insertar
+    let y1-y0 (item 1 insecto - item 1 coord-gp)
+
+    ; Si el centro del insecto nuevo que se va a insertar tiene una
+    ; distancia menor o igual a 40 tanto en las x como en las y, se
+    ; buscará otro centro de coordenada en el que insertarlo.
+    ; Si resulta ser falsa la proposición, se considera un centro de
+    ; coordenadas correcto para la inserción del insecto.
+    if abs y1-y0 < 41 AND abs x1-x0 < 41
+    [
+      set coord-gp list ((random 262) - 130) ((random 162) - 80)
+      stop
+    ]
+  ]
+
+  set no-hay-gp-nuevo false
 end
 
 to crear-perforador-menor
+  let orientacion 0
+  set orientacion random 2
+  ifelse orientacion = 1
+  [
+    ask patches with
+    [pxcor = item 0 coord-pm - 3 AND (pycor >= item 1 coord-pm - 3 AND pycor <= item 1 coord-pm - 2)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-pm - 3 AND (pycor >= item 1 coord-pm + 1 AND pycor <= item 1 coord-pm + 2)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-pm - 3 AND (pycor >= item 1 coord-pm + 5 AND pycor <= item 1 coord-pm + 6)]
+    [set pcolor red]
 
+    ask patches with
+    [pxcor = item 0 coord-pm - 2 AND (pycor >= item 1 coord-pm - 3 AND pycor <= item 1 coord-pm + 3)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-pm - 2 AND (pycor >= item 1 coord-pm + 5 AND pycor <= item 1 coord-pm + 6)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-pm - 1 AND (pycor >= item 1 coord-pm - 9 AND pycor <= item 1 coord-pm + 8)]
+    [set pcolor red]
+
+    ask patches with
+    [(pxcor >= item 0 coord-pm AND pxcor <= item 0 coord-pm + 1) AND (pycor >= item 1 coord-pm - 7 AND pycor <= item 1 coord-pm + 7)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-pm + 2 AND (pycor >= item 1 coord-pm - 9 AND pycor <= item 1 coord-pm + 8)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-pm + 3 AND (pycor >= item 1 coord-pm - 3 AND pycor <= item 1 coord-pm + 3)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-pm + 3 AND (pycor >= item 1 coord-pm + 5 AND pycor <= item 1 coord-pm + 6)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-pm + 4 AND (pycor >= item 1 coord-pm - 3 AND pycor <= item 1 coord-pm - 2)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-pm + 4 AND (pycor >= item 1 coord-pm + 1 AND pycor <= item 1 coord-pm + 2)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-pm + 4 AND (pycor >= item 1 coord-pm + 5 AND pycor <= item 1 coord-pm + 6)]
+    [set pcolor red]
+  ]
+  [
+    ask patches with
+    [pycor = item 1 coord-pm + 3 AND (pxcor >= item 1 coord-pm - 3 AND pxcor <= item 1 coord-pm - 2)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-pm + 3 AND (pxcor >= item 1 coord-pm + 1 AND pxcor <= item 1 coord-pm + 2)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-pm + 3 AND (pxcor >= item 1 coord-pm + 5 AND pxcor <= item 1 coord-pm + 6)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-pm + 2 AND (pxcor >= item 1 coord-pm - 3 AND pxcor <= item 1 coord-pm + 3)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-pm + 2 AND (pxcor >= item 1 coord-pm + 5 AND pxcor <= item 1 coord-pm + 6)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-pm + 1 AND (pxcor >= item 1 coord-pm - 9 AND pxcor <= item 1 coord-pm + 8)]
+    [set pcolor red]
+
+    ask patches with
+    [(pycor >= item 1 coord-pm - 1 AND pycor <= item 1 coord-pm) AND (pxcor >= item 1 coord-pm - 7 AND pxcor <= item 1 coord-pm + 7)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-pm - 2 AND (pxcor >= item 1 coord-pm - 9 AND pxcor <= item 1 coord-pm + 8)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-pm - 3 AND (pxcor >= item 1 coord-pm - 3 AND pxcor <= item 1 coord-pm + 3)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-pm - 3 AND (pxcor >= item 1 coord-pm + 5 AND pxcor <= item 1 coord-pm + 6)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-pm - 4 AND (pxcor >= item 1 coord-pm - 3 AND pxcor <= item 1 coord-pm - 2)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-pm - 4 AND (pxcor >= item 1 coord-pm + 1 AND pxcor <= item 1 coord-pm + 2)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-pm - 4 AND (pxcor >= item 1 coord-pm + 5 AND pxcor <= item 1 coord-pm + 6)]
+    [set pcolor red]
+  ]
 end
 
 to crear-gusano-cuarteador
+  let orientacion 0
+  set orientacion random 2
+  ifelse orientacion = 1
+  [
+    ask patches with
+    [pxcor = item 0 coord-gc - 4 AND pycor = item 1 coord-gc - 14]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc - 4 AND (pycor >= item 1 coord-gc - 11 AND pycor <= item 1 coord-gc - 8)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc - 4 AND (pycor >= item 1 coord-gc + 4 AND pycor <= item 1 coord-gc + 7)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc - 4 AND (pycor >= item 1 coord-gc + 11 AND pycor <= item 1 coord-gc + 14)]
+    [set pcolor red]
 
+    ask patches with
+    [pxcor = item 0 coord-gc - 3 AND pycor = item 1 coord-gc - 14]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc - 3 AND (pycor >= item 1 coord-gc - 11 AND pycor <= item 1 coord-gc - 8)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc - 3 AND (pycor >= item 1 coord-gc + 4 AND pycor <= item 1 coord-gc + 7)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc - 3 AND (pycor >= item 1 coord-gc + 11 AND pycor <= item 1 coord-gc + 14)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-gc - 2 AND (pycor >= item 1 coord-gc - 21 AND pycor <= item 1 coord-gc + 18)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-gc - 1 AND (pycor >= item 1 coord-gc - 19 AND pycor <= item 1 coord-gc + 16)]
+    [set pcolor red]
+
+    ask patches with
+    [(pxcor >= item 0 coord-gc AND pxcor <= item 0 coord-gc + 1) AND (pycor >= item 1 coord-gc - 19 AND pycor <= item 1 coord-gc + 18)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-gc + 2 AND (pycor >= item 1 coord-gc - 19 AND pycor <= item 1 coord-gc + 16)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-gc + 3 AND (pycor >= item 1 coord-gc - 21 AND pycor <= item 1 coord-gc + 18)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-gc + 4 AND pycor = item 1 coord-gc - 14]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc + 4 AND (pycor >= item 1 coord-gc - 11 AND pycor <= item 1 coord-gc - 8)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc + 4 AND (pycor >= item 1 coord-gc + 4 AND pycor <= item 1 coord-gc + 7)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc + 4 AND (pycor >= item 1 coord-gc + 11 AND pycor <= item 1 coord-gc + 14)]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-gc + 5 AND pycor = item 1 coord-gc - 14]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc + 5 AND (pycor >= item 1 coord-gc - 11 AND pycor <= item 1 coord-gc - 8)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc + 5 AND (pycor >= item 1 coord-gc + 4 AND pycor <= item 1 coord-gc + 7)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gc + 5 AND (pycor >= item 1 coord-gc + 11 AND pycor <= item 1 coord-gc + 14)]
+    [set pcolor red]
+  ]
+  [
+    ask patches with
+    [pycor = item 1 coord-gc + 4 AND pxcor = item 0 coord-gc - 14]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc + 4 AND (pxcor >= item 0 coord-gc - 11 AND pxcor <= item 0 coord-gc - 8)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc + 4 AND (pxcor >= item 0 coord-gc + 4 AND pxcor <= item 0 coord-gc + 7)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc + 4 AND (pxcor >= item 0 coord-gc + 11 AND pxcor <= item 0 coord-gc + 14)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-gc + 3 AND pxcor = item 0 coord-gc - 14]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc + 3 AND (pxcor >= item 0 coord-gc - 11 AND pxcor <= item 0 coord-gc - 8)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc + 3 AND (pxcor >= item 0 coord-gc + 4 AND pxcor <= item 0 coord-gc + 7)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc + 3 AND (pxcor >= item 0 coord-gc + 11 AND pxcor <= item 0 coord-gc + 14)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-gc + 2 AND (pxcor >= item 0 coord-gc - 21 AND pxcor <= item 0 coord-gc + 18)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-gc + 1 AND (pxcor >= item 0 coord-gc - 19 AND pxcor <= item 0 coord-gc + 16)]
+    [set pcolor red]
+
+    ask patches with
+    [(pycor >= item 1 coord-gc - 1 AND pycor <= item 1 coord-gc) AND (pxcor >= item 0 coord-gc - 19 AND pxcor <= item 0 coord-gc + 18)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-gc - 2 AND (pxcor >= item 0 coord-gc - 19 AND pxcor <= item 0 coord-gc + 16)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-gc - 3 AND (pxcor >= item 0 coord-gc - 21 AND pxcor <= item 0 coord-gc + 18)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-gc - 4 AND pxcor = item 0 coord-gc - 14]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc - 4 AND (pxcor >= item 0 coord-gc - 11 AND pxcor <= item 0 coord-gc - 8)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc - 4 AND (pxcor >= item 0 coord-gc + 4 AND pxcor <= item 0 coord-gc + 7)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc - 4 AND (pxcor >= item 0 coord-gc + 11 AND pxcor <= item 0 coord-gc + 14)]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-gc - 5 AND pxcor = item 0 coord-gc - 14]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc - 5 AND (pxcor >= item 0 coord-gc - 11 AND pxcor <= item 0 coord-gc - 8)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc - 5 AND (pxcor >= item 0 coord-gc + 4 AND pxcor <= item 0 coord-gc + 7)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gc - 5 AND (pxcor >= item 0 coord-gc + 11 AND pxcor <= item 0 coord-gc + 14)]
+    [set pcolor red]
+  ]
 end
 
 to crear-gusano-perforador
@@ -206,233 +572,599 @@ to crear-gusano-perforador
   ifelse orientacion = 1
   [
     ask patches with
-    [pxcor = item 0 coord - 5 AND (pycor >= item 1 coord - 11 AND pycor <= item 1 coord - 9)]
+    [pxcor = item 0 coord-gp - 5 AND (pycor >= item 1 coord-gp - 11 AND pycor <= item 1 coord-gp - 9)]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord - 5 AND (pycor >= item 1 coord - 7 AND pycor <= item 1 coord - 4)]
+    [pxcor = item 0 coord-gp - 5 AND (pycor >= item 1 coord-gp - 7 AND pycor <= item 1 coord-gp - 4)]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord - 5 AND (pycor >= item 1 coord - 1 AND pycor <= item 1 coord + 1)]
+    [pxcor = item 0 coord-gp - 5 AND (pycor >= item 1 coord-gp - 1 AND pycor <= item 1 coord-gp + 1)]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord - 5 AND (pycor >= item 1 coord + 4 AND pycor <= item 1 coord + 7)]
+    [pxcor = item 0 coord-gp - 5 AND (pycor >= item 1 coord-gp + 4 AND pycor <= item 1 coord-gp + 7)]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord - 5 AND (pycor >= item 1 coord + 9 AND pycor <= item 1 coord + 12)]
+    [pxcor = item 0 coord-gp - 5 AND (pycor >= item 1 coord-gp + 9 AND pycor <= item 1 coord-gp + 12)]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord - 5 AND (pycor >= item 1 coord + 14 AND pycor <= item 1 coord + 16)]
-    [set pcolor red]
-
-    ask patches with
-    [pxcor = item 0 coord - 4 AND pycor = item 1 coord - 17]
-    [set pcolor red]
-    ask patches with
-    [pxcor = item 0 coord - 4 AND (pycor >= item 1 coord - 15 AND pycor <= item 1 coord - 14)]
-    [set pcolor red]
-    ask patches with
-    [pxcor = item 0 coord - 4 AND (pycor >= item 1 coord - 12 AND pycor <= item 1 coord + 17)]
-    [set pcolor red]
-    ask patches with
-    [pxcor = item 0 coord - 4 AND pycor = item 1 coord + 19]
+    [pxcor = item 0 coord-gp - 5 AND (pycor >= item 1 coord-gp + 14 AND pycor <= item 1 coord-gp + 16)]
     [set pcolor red]
 
     ask patches with
-    [pxcor = item 0 coord - 3 AND (pycor >= item 1 coord - 18 AND pycor <= item 1 coord + 19)]
+    [pxcor = item 0 coord-gp - 4 AND pycor = item 1 coord-gp - 17]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gp - 4 AND (pycor >= item 1 coord-gp - 15 AND pycor <= item 1 coord-gp - 14)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gp - 4 AND (pycor >= item 1 coord-gp - 12 AND pycor <= item 1 coord-gp + 17)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gp - 4 AND pycor = item 1 coord-gp + 19]
     [set pcolor red]
 
     ask patches with
-    [(pxcor >= item 0 coord - 2 AND pxcor <= item 0 coord + 1) AND (pycor >= item 1 coord - 19 AND pycor <= item 1 coord + 19)]
+    [pxcor = item 0 coord-gp - 3 AND (pycor >= item 1 coord-gp - 18 AND pycor <= item 1 coord-gp + 19)]
     [set pcolor red]
 
     ask patches with
-    [pxcor = item 0 coord + 2 AND (pycor >= item 1 coord - 18 AND pycor <= item 1 coord + 19)]
+    [(pxcor >= item 0 coord-gp - 2 AND pxcor <= item 0 coord-gp + 1) AND (pycor >= item 1 coord-gp - 19 AND pycor <= item 1 coord-gp + 19)]
     [set pcolor red]
 
     ask patches with
-    [pxcor = item 0 coord + 3 AND pycor = item 1 coord - 17]
-    [set pcolor red]
-    ask patches with
-    [pxcor = item 0 coord + 3 AND (pycor >= item 1 coord - 15 AND pycor <= item 1 coord - 14)]
-    [set pcolor red]
-    ask patches with
-    [pxcor = item 0 coord + 3 AND (pycor >= item 1 coord - 12 AND pycor <= item 1 coord + 17)]
-    [set pcolor red]
-    ask patches with
-    [pxcor = item 0 coord + 3 AND pycor = item 1 coord + 19]
+    [pxcor = item 0 coord-gp + 2 AND (pycor >= item 1 coord-gp - 18 AND pycor <= item 1 coord-gp + 19)]
     [set pcolor red]
 
     ask patches with
-    [pxcor = item 0 coord + 4 AND (pycor >= item 1 coord - 11 AND pycor <= item 1 coord - 9)]
+    [pxcor = item 0 coord-gp + 3 AND pycor = item 1 coord-gp - 17]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord + 4 AND (pycor >= item 1 coord - 7 AND pycor <= item 1 coord - 4)]
+    [pxcor = item 0 coord-gp + 3 AND (pycor >= item 1 coord-gp - 15 AND pycor <= item 1 coord-gp - 14)]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord + 4 AND (pycor >= item 1 coord - 1 AND pycor <= item 1 coord + 1)]
+    [pxcor = item 0 coord-gp + 3 AND (pycor >= item 1 coord-gp - 12 AND pycor <= item 1 coord-gp + 17)]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord + 4 AND (pycor >= item 1 coord + 4 AND pycor <= item 1 coord + 7)]
+    [pxcor = item 0 coord-gp + 3 AND pycor = item 1 coord-gp + 19]
+    [set pcolor red]
+
+    ask patches with
+    [pxcor = item 0 coord-gp + 4 AND (pycor >= item 1 coord-gp - 11 AND pycor <= item 1 coord-gp - 9)]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord + 4 AND (pycor >= item 1 coord + 9 AND pycor <= item 1 coord + 12)]
+    [pxcor = item 0 coord-gp + 4 AND (pycor >= item 1 coord-gp - 7 AND pycor <= item 1 coord-gp - 4)]
     [set pcolor red]
     ask patches with
-    [pxcor = item 0 coord + 4 AND (pycor >= item 1 coord + 14 AND pycor <= item 1 coord + 16)]
+    [pxcor = item 0 coord-gp + 4 AND (pycor >= item 1 coord-gp - 1 AND pycor <= item 1 coord-gp + 1)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gp + 4 AND (pycor >= item 1 coord-gp + 4 AND pycor <= item 1 coord-gp + 7)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gp + 4 AND (pycor >= item 1 coord-gp + 9 AND pycor <= item 1 coord-gp + 12)]
+    [set pcolor red]
+    ask patches with
+    [pxcor = item 0 coord-gp + 4 AND (pycor >= item 1 coord-gp + 14 AND pycor <= item 1 coord-gp + 16)]
     [set pcolor red]
   ]
   [
     ask patches with
-    [pycor = item 1 coord + 5 AND (pxcor >= item 0 coord - 11 AND pxcor <= item 0 coord - 9)]
+    [pycor = item 1 coord-gp + 5 AND (pxcor >= item 0 coord-gp - 11 AND pxcor <= item 0 coord-gp - 9)]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord + 5 AND (pxcor >= item 0 coord - 7 AND pxcor <= item 0 coord - 4)]
+    [pycor = item 1 coord-gp + 5 AND (pxcor >= item 0 coord-gp - 7 AND pxcor <= item 0 coord-gp - 4)]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord + 5 AND (pxcor >= item 0 coord - 1 AND pxcor <= item 0 coord + 1)]
+    [pycor = item 1 coord-gp + 5 AND (pxcor >= item 0 coord-gp - 1 AND pxcor <= item 0 coord-gp + 1)]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord + 5 AND (pxcor >= item 0 coord + 4 AND pxcor <= item 0 coord + 7)]
+    [pycor = item 1 coord-gp + 5 AND (pxcor >= item 0 coord-gp + 4 AND pxcor <= item 0 coord-gp + 7)]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord + 5 AND (pxcor >= item 0 coord + 9 AND pxcor <= item 0 coord + 12)]
+    [pycor = item 1 coord-gp + 5 AND (pxcor >= item 0 coord-gp + 9 AND pxcor <= item 0 coord-gp + 12)]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord + 5 AND (pxcor >= item 0 coord + 14 AND pxcor <= item 0 coord + 16)]
-    [set pcolor red]
-
-    ask patches with
-    [pycor = item 1 coord + 4 AND pxcor = item 0 coord - 17]
-    [set pcolor red]
-    ask patches with
-    [pycor = item 1 coord + 4 AND (pxcor >= item 0 coord - 15 AND pxcor <= item 0 coord - 14)]
-    [set pcolor red]
-    ask patches with
-    [pycor = item 1 coord + 4 AND (pxcor >= item 0 coord - 12 AND pxcor <= item 0 coord + 17)]
-    [set pcolor red]
-    ask patches with
-    [pycor = item 1 coord + 4 AND pxcor = item 0 coord + 19]
+    [pycor = item 1 coord-gp + 5 AND (pxcor >= item 0 coord-gp + 14 AND pxcor <= item 0 coord-gp + 16)]
     [set pcolor red]
 
     ask patches with
-    [pycor = item 1 coord + 3 AND (pxcor >= item 0 coord - 18 AND pxcor <= item 0 coord + 19)]
+    [pycor = item 1 coord-gp + 4 AND pxcor = item 0 coord-gp - 17]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gp + 4 AND (pxcor >= item 0 coord-gp - 15 AND pxcor <= item 0 coord-gp - 14)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gp + 4 AND (pxcor >= item 0 coord-gp - 12 AND pxcor <= item 0 coord-gp + 17)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gp + 4 AND pxcor = item 0 coord-gp + 19]
     [set pcolor red]
 
     ask patches with
-    [(pycor >= item 1 coord - 1 AND pycor <= item 1 coord + 2) AND (pxcor >= item 0 coord - 19 AND pxcor <= item 0 coord + 19)]
+    [pycor = item 1 coord-gp + 3 AND (pxcor >= item 0 coord-gp - 18 AND pxcor <= item 0 coord-gp + 19)]
     [set pcolor red]
 
     ask patches with
-    [pycor = item 1 coord - 2 AND (pxcor >= item 0 coord - 18 AND pxcor <= item 0 coord + 19)]
+    [(pycor >= item 1 coord-gp - 1 AND pycor <= item 1 coord-gp + 2) AND (pxcor >= item 0 coord-gp - 19 AND pxcor <= item 0 coord-gp + 19)]
     [set pcolor red]
 
     ask patches with
-    [pycor = item 1 coord - 3 AND pxcor = item 0 coord - 17]
-    [set pcolor red]
-    ask patches with
-    [pycor = item 1 coord - 3 AND (pxcor >= item 0 coord - 15 AND pxcor <= item 0 coord - 14)]
-    [set pcolor red]
-    ask patches with
-    [pycor = item 1 coord - 3 AND (pxcor >= item 0 coord - 12 AND pxcor <= item 0 coord + 17)]
-    [set pcolor red]
-    ask patches with
-    [pycor = item 1 coord - 3 AND pxcor = item 0 coord + 19]
+    [pycor = item 1 coord-gp - 2 AND (pxcor >= item 0 coord-gp - 18 AND pxcor <= item 0 coord-gp + 19)]
     [set pcolor red]
 
     ask patches with
-    [pycor = item 1 coord - 4 AND (pxcor >= item 0 coord - 11 AND pxcor <= item 0 coord - 9)]
+    [pycor = item 1 coord-gp - 3 AND pxcor = item 0 coord-gp - 17]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord - 4 AND (pxcor >= item 0 coord - 7 AND pxcor <= item 0 coord - 4)]
+    [pycor = item 1 coord-gp - 3 AND (pxcor >= item 0 coord-gp - 15 AND pxcor <= item 0 coord-gp - 14)]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord - 4 AND (pxcor >= item 0 coord - 1 AND pxcor <= item 0 coord + 1)]
+    [pycor = item 1 coord-gp - 3 AND (pxcor >= item 0 coord-gp - 12 AND pxcor <= item 0 coord-gp + 17)]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord - 4 AND (pxcor >= item 0 coord + 4 AND pxcor <= item 0 coord + 7)]
+    [pycor = item 1 coord-gp - 3 AND pxcor = item 0 coord-gp + 19]
+    [set pcolor red]
+
+    ask patches with
+    [pycor = item 1 coord-gp - 4 AND (pxcor >= item 0 coord-gp - 11 AND pxcor <= item 0 coord-gp - 9)]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord - 4 AND (pxcor >= item 0 coord + 9 AND pxcor <= item 0 coord + 12)]
+    [pycor = item 1 coord-gp - 4 AND (pxcor >= item 0 coord-gp - 7 AND pxcor <= item 0 coord-gp - 4)]
     [set pcolor red]
     ask patches with
-    [pycor = item 1 coord - 4 AND (pxcor >= item 0 coord + 14 AND pxcor <= item 0 coord + 16)]
+    [pycor = item 1 coord-gp - 4 AND (pxcor >= item 0 coord-gp - 1 AND pxcor <= item 0 coord-gp + 1)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gp - 4 AND (pxcor >= item 0 coord-gp + 4 AND pxcor <= item 0 coord-gp + 7)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gp - 4 AND (pxcor >= item 0 coord-gp + 9 AND pxcor <= item 0 coord-gp + 12)]
+    [set pcolor red]
+    ask patches with
+    [pycor = item 1 coord-gp - 4 AND (pxcor >= item 0 coord-gp + 14 AND pxcor <= item 0 coord-gp + 16)]
     [set pcolor red]
   ]
 end
 
 to go
+  actualizar-sensores
   ask turtles [search]
   tick
 end
 
-to search
-  ifelse [pcolor] of patch-ahead 1 = red [set enfrente true] [set enfrente false]
-  ifelse [pcolor] of patch-right-and-ahead 90 1 = red [set derecha true] [set derecha false]
-  ifelse [pcolor] of patch-left-and-ahead 90 1 = red [set izquierda true] [set izquierda false]
-  ifelse [pcolor] of patch-right-and-ahead 45 1 = red [set e-d true] [set e-d false]
-  ifelse [pcolor] of patch-left-and-ahead 45 1 = red [set e-i true] [set e-i false]
-  ifelse [pcolor] of patch-right-and-ahead 135 1 = red [set a-d true] [set a-d false]
-  ifelse [pcolor] of patch-left-and-ahead 135 1 = red [set a-i true] [set a-i false]
+to actualizar-sensores
+  ask turtles [
+    ifelse [pcolor] of patch-ahead 1 = red [set e-rojo true] [set e-rojo false]
+    ifelse [pcolor] of patch-right-and-ahead 90 1 = red [set d-rojo true] [set d-rojo false]
+    ifelse [pcolor] of patch-left-and-ahead 90 1 = red [set i-rojo true] [set i-rojo false]
+    ifelse [pcolor] of patch-right-and-ahead 45 1 = red [set e-d-rojo true] [set e-d-rojo false]
+    ifelse [pcolor] of patch-left-and-ahead 45 1 = red [set e-i-rojo true] [set e-i-rojo false]
+    ifelse [pcolor] of patch-right-and-ahead 135 1 = red [set a-d-rojo true] [set a-d-rojo false]
+    ifelse [pcolor] of patch-left-and-ahead 135 1 = red [set a-i-rojo true] [set a-i-rojo false]
 
+    ifelse [pcolor] of patch-ahead 1 = yellow [set e-amarillo true] [set e-amarillo false]
+    ifelse [pcolor] of patch-right-and-ahead 90 1 = yellow [set d-amarillo true] [set d-amarillo false]
+    ifelse [pcolor] of patch-left-and-ahead 90 1 = yellow [set i-amarillo true] [set i-amarillo false]
+    ifelse [pcolor] of patch-right-and-ahead 45 1 = yellow [set e-d-amarillo true] [set e-d-amarillo false]
+    ifelse [pcolor] of patch-left-and-ahead 45 1 = yellow [set e-i-amarillo true] [set e-i-amarillo false]
+    ifelse [pcolor] of patch-right-and-ahead 135 1 = yellow [set a-d-amarillo true] [set a-d-amarillo false]
+    ifelse [pcolor] of patch-left-and-ahead 135 1 = yellow [set a-i-amarillo true] [set a-i-amarillo false]
+
+    ifelse [pcolor] of patch-ahead 1 = black [set e-vacio true] [set e-vacio false]
+    ifelse [pcolor] of patch-right-and-ahead 90 1 = black [set d-vacio true] [set d-vacio false]
+    ifelse [pcolor] of patch-left-and-ahead 90 1 = black [set i-vacio true] [set i-vacio false]
+    ifelse [pcolor] of patch-right-and-ahead 45 1 = black [set e-d-vacio true] [set e-d-vacio false]
+    ifelse [pcolor] of patch-left-and-ahead 45 1 = black [set e-i-vacio true] [set e-i-vacio false]
+    ifelse [pcolor] of patch-right-and-ahead 135 1 = black [set a-d-vacio true] [set a-d-vacio false]
+    ifelse [pcolor] of patch-left-and-ahead 135 1 = black [set a-i-vacio true] [set a-i-vacio false]
+  ]
+end
+
+to search
   ifelse buscando = true
   [
     ifelse tiempo-desde-ultimo-encuentro <= 20
     [right (random 181) - 20]
     [right (random 21) - 10]
 
-    ifelse enfrente OR e-d OR e-i
+    ifelse (e-rojo OR e-d-rojo OR e-i-rojo) AND NOT e-amarillo AND NOT e-d-amarillo AND NOT e-i-amarillo AND NOT i-amarillo AND NOT d-amarillo
     [
       set buscando false
     ]
     [
-      if enfrente = yellow
-      [right 180]
+      if (e-amarillo OR e-d-amarillo OR e-i-amarillo) AND NOT i-amarillo AND NOT d-amarillo [right 180]
 
       forward 1
       set tiempo-desde-ultimo-encuentro tiempo-desde-ultimo-encuentro + 1
     ]
   ]
   [
-    while [NOT posicionado]
+    if NOT guiado
+    [guiar]
+
+    ; Ahora se ubicará al agente en una posición discreta
+    if NOT posicionado
     [posicionar]
   ]
 end
 
-to posicionar
-  if  enfrente AND NOT derecha AND NOT izquierda AND NOT e-d AND NOT e-i
+to identificar
+  ask turtles [
+    pintar-automatico
+    avanzar-automatico
+  ]
+  actualizar-sensores
+  tick
+end
+
+to pintar-automatico
+  if NOT buscando
+    [
+      if i-rojo
+      [
+        ask patch-left-and-ahead 90 1 [set pcolor yellow]
+        set partes-pintadas partes-pintadas + 1
+        set partes-pintadas-encontradas 0
+      ]
+
+      if d-rojo
+      [
+        ask patch-right-and-ahead 90 1 [set pcolor yellow]
+        set partes-pintadas partes-pintadas + 1
+        set partes-pintadas-encontradas 0
+      ]
+
+      if e-rojo
+      [
+        ask patch-ahead 1 [set pcolor yellow]
+        set partes-pintadas partes-pintadas + 1
+        set partes-pintadas-encontradas 0
+      ]
+
+      if i-amarillo
+      [
+        ifelse partes-pintadas-encontradas < 5
+        [
+          set partes-pintadas-encontradas partes-pintadas-encontradas + 1
+        ]
+        [
+          if partes-pintadas >= 46 AND partes-pintadas <= 52
+          [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
+          if partes-pintadas >= 104 AND partes-pintadas <= 110
+          [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
+          if partes-pintadas >= 86 AND partes-pintadas <= 92
+          [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
+          right 90
+          set buscando true
+          set partes-pintadas-encontradas 0
+          set partes-pintadas 0
+          set guiado false
+          set posicionado false
+        ]
+      ]
+
+      if d-amarillo
+      [
+        ifelse partes-pintadas-encontradas <= 6
+        [
+          set partes-pintadas-encontradas partes-pintadas-encontradas + 1
+        ]
+        [
+          if partes-pintadas = 46 [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
+          if partes-pintadas = 104 [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
+          if partes-pintadas = 86 [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
+          left 90
+          set buscando true
+          set partes-pintadas-encontradas 0
+          set partes-pintadas 0
+          set guiado false
+          set posicionado false
+        ]
+      ]
+    ]
+end
+
+to avanzar-automatico
+  let d-rojo-2 false
+  let i-rojo-2 false
+
+  if [pcolor] of patch-right-and-ahead 90 2 = red [set d-rojo-2 true]
+  if [pcolor] of patch-left-and-ahead 90 2 = red [set i-rojo-2 true]
+
+  if NOT buscando
+    [
+      ; Si se recorre en sentido anti-horario
+
+      ; Esto por si el agente se llega a parar en una ubicación desafortunada
+      ; en la que no tiene al lado una parte del cuerpo del insecto
+      if NOT sentido-horario AND (e-i-rojo AND i-vacio OR a-i-rojo AND i-vacio) AND partes-pintadas = 0 [forward 1]
+      if NOT sentido-horario AND i-amarillo AND d-vacio AND e-vacio [forward 1]
+      if NOT sentido-horario AND a-i-amarillo AND i-vacio
+      [
+        left 90
+        forward 1
+      ]
+      if NOT sentido-horario AND e-amarillo AND d-vacio AND (NOT a-i-amarillo OR NOT i-vacio OR NOT i-rojo-2)
+      [
+        right 90
+        forward 1
+      ]
+      if NOT sentido-horario AND e-amarillo AND d-rojo
+      [
+        left 180
+        forward 1
+        left 90
+        forward 1
+      ]
+      if NOT sentido-horario AND e-amarillo AND d-amarillo AND i-amarillo
+      [
+        left 180
+      ]
+      if NOT sentido-horario AND d-amarillo AND i-amarillo AND e-vacio
+      [
+        forward 1
+      ]
+
+      ; Si se recorre en sentido horario
+
+      ; Esto por si el agente se llega a parar en una ubicación desafortunada
+      ; en la que no tiene al lado una parte del cuerpo del insecto
+      if sentido-horario AND (e-d-rojo AND d-vacio OR a-d-rojo AND d-vacio) AND partes-pintadas = 0 [forward 1]
+      if sentido-horario AND d-amarillo AND i-vacio AND e-vacio [forward 1]
+      if sentido-horario AND a-d-amarillo AND d-vacio
+      [
+        right 90
+        forward 1
+      ]
+      if sentido-horario AND e-amarillo AND i-vacio AND (NOT a-d-amarillo OR NOT d-vacio OR NOT d-rojo-2)
+      [
+        left 90
+        forward 1
+      ]
+      if sentido-horario AND e-amarillo AND i-rojo
+      [
+        right 180
+        forward 1
+        right 90
+        forward 1
+      ]
+      if sentido-horario AND e-amarillo AND d-amarillo AND i-amarillo
+      [
+        right 180
+      ]
+      if sentido-horario AND d-amarillo AND i-amarillo AND e-vacio
+      [
+        forward 1
+      ]
+  ]
+end
+
+to pintar
+  ask turtles[
+    if NOT buscando
+    [
+      if i-rojo
+      [
+        ask patch-left-and-ahead 90 1 [set pcolor yellow]
+        set partes-pintadas partes-pintadas + 1
+        set partes-pintadas-encontradas 0
+      ]
+
+      if d-rojo
+      [
+        ask patch-right-and-ahead 90 1 [set pcolor yellow]
+        set partes-pintadas partes-pintadas + 1
+        set partes-pintadas-encontradas 0
+      ]
+
+      if e-rojo
+      [
+        ask patch-ahead 1 [set pcolor yellow]
+        set partes-pintadas partes-pintadas + 1
+        set partes-pintadas-encontradas 0
+      ]
+
+      if i-amarillo
+      [
+        ifelse partes-pintadas-encontradas < 5
+        [
+          set partes-pintadas-encontradas partes-pintadas-encontradas + 1
+        ]
+        [
+          if partes-pintadas >= 46 AND partes-pintadas <= 52
+          [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
+          if partes-pintadas >= 104 AND partes-pintadas <= 110
+          [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
+          if partes-pintadas >= 86 AND partes-pintadas <= 92
+          [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
+          right 90
+          set buscando true
+          set partes-pintadas-encontradas 0
+          set partes-pintadas 0
+          set guiado false
+          set posicionado false
+        ]
+      ]
+
+      if d-amarillo
+      [
+        ifelse partes-pintadas-encontradas <= 6
+        [
+          set partes-pintadas-encontradas partes-pintadas-encontradas + 1
+        ]
+        [
+          if partes-pintadas = 46 [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
+          if partes-pintadas = 104 [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
+          if partes-pintadas = 86 [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
+          left 90
+          set buscando true
+          set partes-pintadas-encontradas 0
+          set partes-pintadas 0
+          set guiado false
+          set posicionado false
+        ]
+      ]
+    ]
+  ]
+
+  actualizar-sensores
+end
+
+to avanzar
+  ask turtles [
+    let d-rojo-2 false
+    let i-rojo-2 false
+
+    if [pcolor] of patch-right-and-ahead 90 2 = red [set d-rojo-2 true]
+    if [pcolor] of patch-left-and-ahead 90 2 = red [set i-rojo-2 true]
+
+    if NOT buscando
+    [
+      ; Si se recorre en sentido anti-horario
+
+      ; Esto por si el agente se llega a parar en una ubicación desafortunada
+      ; en la que no tiene al lado una parte del cuerpo del insecto
+      if NOT sentido-horario AND (e-i-rojo AND i-vacio OR a-i-rojo AND i-vacio) AND partes-pintadas = 0 [forward 1]
+      if NOT sentido-horario AND i-amarillo AND d-vacio AND e-vacio [forward 1]
+      if NOT sentido-horario AND a-i-amarillo AND i-vacio
+      [
+        left 90
+        forward 1
+      ]
+      if NOT sentido-horario AND e-amarillo AND d-vacio AND (NOT a-i-amarillo OR NOT i-vacio OR NOT i-rojo-2)
+      [
+        right 90
+        forward 1
+      ]
+      if NOT sentido-horario AND e-amarillo AND d-rojo
+      [
+        left 180
+        forward 1
+        left 90
+        forward 1
+      ]
+      if NOT sentido-horario AND e-amarillo AND d-amarillo AND i-amarillo
+      [
+        left 180
+      ]
+      if NOT sentido-horario AND d-amarillo AND i-amarillo AND e-vacio
+      [
+        forward 1
+      ]
+
+      ; Si se recorre en sentido horario
+
+      ; Esto por si el agente se llega a parar en una ubicación desafortunada
+      ; en la que no tiene al lado una parte del cuerpo del insecto
+      if sentido-horario AND (e-d-rojo AND d-vacio OR a-d-rojo AND d-vacio) AND partes-pintadas = 0 [forward 1]
+      if sentido-horario AND d-amarillo AND i-vacio AND e-vacio [forward 1]
+      if sentido-horario AND a-d-amarillo AND d-vacio
+      [
+        right 90
+        forward 1
+      ]
+
+      ; Se agregan las condiciones del final para el caso del perforador menor
+      if sentido-horario AND e-amarillo AND i-vacio AND (NOT a-d-amarillo OR NOT d-vacio OR NOT d-rojo-2)
+      [
+        left 90
+        forward 1
+      ]
+      if sentido-horario AND e-amarillo AND i-rojo
+      [
+        right 180
+        forward 1
+        right 90
+        forward 1
+      ]
+      if sentido-horario AND e-amarillo AND d-amarillo AND i-amarillo
+      [
+        right 180
+      ]
+      if sentido-horario AND d-amarillo AND i-amarillo AND e-vacio
+      [
+        forward 1
+      ]
+    ]
+  ]
+
+  actualizar-sensores
+end
+
+to establecer-sentido
+  ifelse NOT e-rojo
+  [
+    if heading = 0 OR heading = 90 OR heading = 180 OR heading = 270
+    [
+      if (d-rojo OR e-d-rojo) OR (patch-right-and-ahead 90 2 = red OR patch-right-and-ahead 45 2 = red)
+      [set sentido-horario true]
+      if (i-rojo OR e-i-rojo) OR (patch-left-and-ahead 90 2 = red OR patch-right-and-ahead 45 2 = red)
+      [set sentido-horario false]
+    ]
+  ]
+  [
+    if d-rojo AND i-vacio
+    [set sentido-horario true]
+
+    if i-rojo AND d-vacio
+    [set sentido-horario false]
+
+    let sentido random 2
+    ifelse sentido = 0
+    [set sentido-horario false]
+    [set sentido-horario true]
+  ]
+
+  set sentido-establecido true
+end
+
+to guiar
+  if e-rojo AND d-vacio AND i-vacio AND (e-d-vacio OR e-i-vacio)
   [
     choca-de-frente
-    set posicionado true
+    set guiado true
   ]
 
-  if enfrente AND derecha AND izquierda AND e-d AND e-i AND a-d AND a-i
+  if e-rojo AND d-rojo AND i-vacio AND e-d-vacio AND e-i-vacio
+  [
+    choca-en-esquina-de-hueco-con-vacio-izquierdo
+    set guiado true
+  ]
+
+  if e-rojo AND i-rojo AND d-vacio AND e-i-vacio AND e-d-vacio
+  [
+    choca-en-esquina-de-hueco-con-vacio-derecho
+    set guiado true
+  ]
+
+  if e-rojo AND d-rojo AND i-rojo AND e-d-rojo AND e-i-rojo AND a-d-rojo AND a-i-rojo
   [
     choca-de-frente-en-hueco
-    set posicionado true
+    set guiado true
   ]
 
-  if e-i AND e-d AND NOT a-i AND NOT a-d
+  if e-i-rojo AND e-d-rojo AND a-i-vacio AND a-d-vacio
   [
     acercamiento-a-hueco
-    set posicionado true
+    set guiado true
   ]
 
-  if e-i AND NOT e-d AND NOT derecha
+  if e-i-rojo AND e-d-vacio AND d-vacio
   [
     choque-oblicuo-derecha-nada
-    set posicionado true
+    set guiado true
   ]
 
-  if e-d AND NOT e-i AND NOT izquierda
+  if e-d-rojo AND e-i-vacio AND i-vacio
   [
     choque-oblicuo-izquierda-nada
-    set posicionado true
+    set guiado true
   ]
 
-  if enfrente AND derecha AND izquierda AND e-d AND e-i AND NOT a-d AND NOT a-i
+  if e-rojo AND d-rojo AND i-rojo AND e-d-rojo AND e-i-rojo AND a-d-vacio AND a-i-vacio
   [
     choque-agente-se-encierra
-    set posicionado true
+    set guiado true
   ]
 end
 
@@ -442,94 +1174,84 @@ to choca-de-frente
   if heading > 45 AND heading < 135
   [
     ifelse heading > 45 AND heading < 90
-    [
-      set heading 0
-      set va-al-norte true
-    ]
-    [
-      set heading 180
-      set va-al-sur true
-    ]
+    [set heading 0]
+    [set heading 180]
   ]
 
   if heading > 135 AND heading < 225
   [
     ifelse heading > 135 AND heading < 180
-    [
-      set heading 90
-      set va-al-este true
-    ]
-    [
-      set heading 270
-      set va-al-oeste true
-    ]
+    [set heading 90]
+    [set heading 270]
   ]
 
   if heading > 225 AND heading < 315
   [
     ifelse heading > 225 AND heading < 270
-    [
-      set heading 180
-      set va-al-sur true
-    ]
-    [
-      set heading 0
-      set va-al-norte true
-    ]
+    [set heading 180]
+    [set heading 0]
   ]
 
-  if heading > 315 AND heading < 360 OR heading >= 0 AND heading < 45
+  if (heading > 315 AND heading < 360) OR (heading >= 0 AND heading < 45)
   [
     ifelse heading > 315 AND heading < 360
-    [
-      set heading 270
-      set va-al-oeste true
-    ]
-    [
-      set heading 90
-      set va-al-este true
-    ]
+    [set heading 270]
+    [set heading 90]
   ]
 
-  set va-al-norte false
-  set va-al-este false
-  set va-al-sur false
-  set va-al-oeste false
-
   set choque-frontal false
+end
+
+to choca-en-esquina-de-hueco-con-vacio-izquierdo
+  set choca-en-esquina-vacio-izquierda true
+
+  if heading > 0 AND heading < 90
+  [set heading 90]
+
+  if heading > 90 AND heading < 180
+  [set heading 180]
+
+  if heading > 180 AND heading < 270
+  [set heading 270]
+
+  if heading > 270 AND heading < 360
+  [set heading 0]
+
+  set choca-en-esquina-vacio-izquierda false
+end
+
+to choca-en-esquina-de-hueco-con-vacio-derecho
+  set choca-en-esquina-vacio-derecha true
+
+  if heading > 0 AND heading < 90
+  [set heading 90]
+
+  if heading > 90 AND heading < 180
+  [set heading 180]
+
+  if heading > 180 AND heading < 270
+  [set heading 270]
+
+  if heading > 270 AND heading < 360
+  [set heading 0]
+
+  set choca-en-esquina-vacio-derecha false
 end
 
 to choca-de-frente-en-hueco
   set choque-hueco-angosto true
 
   if heading > 45 AND heading < 135
-  [
-    set heading 270
-    set va-al-oeste true
-  ]
+  [set heading 270]
 
   if heading > 135 AND heading < 225
-  [
-    set heading 0
-    set va-al-norte true
-  ]
+  [set heading 0]
 
   if heading > 225 AND heading < 315
-  [
-    set heading 90
-    set va-al-este true
-  ]
+  [set heading 90]
 
   if heading > 315 AND heading < 360 OR heading >= 0 AND heading < 45
-  [
-    set heading 180
-    set va-al-sur true
-  ]
-
-  set va-al-norte false
-  set va-al-este false
-  set va-al-sur false
-  set va-al-oeste false
+  [set heading 180]
 
   set choque-hueco-angosto false
 end
@@ -538,28 +1260,16 @@ to acercamiento-a-hueco
   set se-acerca-a-hueco true
 
   if heading > 0 AND heading < 90
-  [
-    set heading 90
-    set va-al-este true
-  ]
+  [set heading 90]
 
   if heading > 90 AND heading < 180
-  [
-    set heading 180
-    set va-al-sur true
-  ]
+  [set heading 180]
 
   if heading > 180 AND heading < 270
-  [
-    set heading 270
-    set va-al-oeste true
-  ]
+  [set heading 270]
 
   if heading > 270 AND heading < 360
-  [
-    set heading 0
-    set va-al-norte true
-  ]
+  [set heading 0]
 
   set se-acerca-a-hueco false
 end
@@ -568,33 +1278,16 @@ to choque-oblicuo-derecha-nada
   set choca-oblicuamente-derecha-nada true
 
   if heading > 0 AND heading < 90
-  [
-    set heading 90
-    set va-al-este true
-  ]
+  [set heading 90]
 
   if heading > 90 AND heading < 180
-  [
-    set heading 180
-    set va-al-sur true
-  ]
+  [set heading 180]
 
   if heading > 180 AND heading < 270
-  [
-    set heading 270
-    set va-al-oeste true
-  ]
+  [set heading 270]
 
   if heading > 270 AND heading < 360
-  [
-    set heading 0
-    set va-al-norte true
-  ]
-
-  set va-al-norte false
-  set va-al-este false
-  set va-al-sur false
-  set va-al-oeste false
+  [set heading 0]
 
   set choca-oblicuamente-derecha-nada false
 end
@@ -603,33 +1296,17 @@ to choque-oblicuo-izquierda-nada
   set choca-oblicuamente-izquierda-nada true
 
   if heading > 0 AND heading < 90
-  [
-    set heading 90
-    set va-al-este true
-  ]
+  [set heading 90]
 
   if heading > 90 AND heading < 180
-  [
-    set heading 180
-    set va-al-sur true
-  ]
+  [set heading 180]
 
   if heading > 180 AND heading < 270
-  [
-    set heading 270
-    set va-al-oeste true
-  ]
+  [set heading 270]
 
   if heading > 270 AND heading < 360
-  [
-    set heading 0
-    set va-al-norte true
-  ]
+  [set heading 0]
 
-  set va-al-norte false
-  set va-al-este false
-  set va-al-sur false
-  set va-al-oeste false
   set choca-oblicuamente-izquierda-nada false
 end
 
@@ -639,67 +1316,203 @@ to choque-agente-se-encierra
   if heading > 0 AND heading < 90
   [
     ifelse heading > 0 AND heading < 45
-    [
-      set heading 270
-      set va-al-oeste true
-    ]
-    [
-      set heading 180
-      set va-al-sur true
-    ]
+    [set heading 270]
+    [set heading 180]
   ]
 
   if heading > 90 AND heading < 180
   [
     ifelse heading > 90 AND heading < 135
-    [
-      set heading 0
-      set va-al-norte true
-    ]
-    [
-      set heading 270
-      set va-al-oeste true
-    ]
+    [set heading 0]
+    [set heading 270]
   ]
 
   if heading > 180 AND heading < 270
   [
     ifelse heading > 180 AND heading < 270
-    [
-      set heading 90
-      set va-al-este true
-    ]
-    [
-      set heading 0
-      set va-al-norte true
-    ]
+    [set heading 90]
+    [set heading 0]
   ]
 
   if heading > 270 AND heading < 360
   [
     ifelse heading > 270 AND heading < 315
+    [set heading 180]
+    [set heading 90]
+  ]
+
+  set choque-oblicuo-rodeado false
+end
+
+to posicionar
+  let posx 0
+  let posy 0
+
+  ifelse e-vacio
+  [
+    if d-rojo
     [
-      set heading 180
-      set va-al-sur true
+      if heading = 0
+      [
+        ask patch-right-and-ahead 90 1 [
+          set posx pxcor - 1
+          set posy pycor
+        ]
+      ]
+      if heading = 90
+      [
+        ask patch-right-and-ahead 90 1 [
+          set posx pxcor
+          set posy pycor + 1
+        ]
+      ]
+      if heading = 180
+      [
+        ask patch-right-and-ahead 90 1 [
+          set posx pxcor + 1
+          set posy pycor
+        ]
+      ]
+      if heading = 270
+      [
+        ask patch-right-and-ahead 90 1 [
+          set posx pxcor
+          set posy pycor - 1
+        ]
+      ]
     ]
+
+    if i-rojo
     [
-      set heading 90
-      set va-al-este true
+      if heading = 0
+      [
+        ask patch-left-and-ahead 90 1 [
+          set posx pxcor + 1
+          set posy pycor
+        ]
+      ]
+      if heading = 90
+      [
+        ask patch-left-and-ahead 90 1 [
+          set posx pxcor
+          set posy pycor + 1
+        ]
+      ]
+      if heading = 180
+      [
+        ask patch-left-and-ahead 90 1 [
+          set posx pxcor - 1
+          set posy pycor
+        ]
+      ]
+      if heading = 270
+      [
+        ask patch-left-and-ahead 90 1 [
+          set posx pxcor
+          set posy pycor - 1
+        ]
+      ]
+    ]
+  ]
+  [
+    if heading = 0
+    [
+      ask patch-ahead 1 [
+        set posx pxcor
+        set posy pycor - 1
+      ]
+    ]
+    if heading = 90
+    [
+      ask patch-ahead 1 [
+        set posx pxcor - 1
+        set posy pycor
+      ]
+    ]
+    if heading = 180
+    [
+      ask patch-ahead 1 [
+        set posx pxcor
+        set posy pycor + 1
+      ]
+    ]
+    if heading = 270
+    [
+      ask patch-ahead 1 [
+        set posx pxcor + 1
+        set posy pycor
+      ]
     ]
   ]
 
-  set va-al-norte false
-  set va-al-este false
-  set va-al-sur false
-  set va-al-oeste false
+  setxy posx posy
 
-  set choque-oblicuo-rodeado false
+  ; Si falla la posición, buscar otra vez desde el origen
+  if posx = 0 AND posy = 0
+  [
+    set buscando true
+    set guiado false
+    stop
+  ]
+
+  ifelse [pcolor] of patch-ahead 1 = red [set e-rojo true] [set e-rojo false]
+  ifelse [pcolor] of patch-right-and-ahead 90 1 = red [set d-rojo true] [set d-rojo false]
+  ifelse [pcolor] of patch-left-and-ahead 90 1 = red [set i-rojo true] [set i-rojo false]
+  ifelse [pcolor] of patch-right-and-ahead 45 1 = red [set e-d-rojo true] [set e-d-rojo false]
+  ifelse [pcolor] of patch-left-and-ahead 45 1 = red [set e-i-rojo true] [set e-i-rojo false]
+  ifelse [pcolor] of patch-right-and-ahead 135 1 = red [set a-d-rojo true] [set a-d-rojo false]
+  ifelse [pcolor] of patch-left-and-ahead 135 1 = red [set a-i-rojo true] [set a-i-rojo false]
+
+  ifelse [pcolor] of patch-ahead 1 = yellow [set e-amarillo true] [set e-amarillo false]
+  ifelse [pcolor] of patch-right-and-ahead 90 1 = yellow [set d-amarillo true] [set d-amarillo false]
+  ifelse [pcolor] of patch-left-and-ahead 90 1 = yellow [set i-amarillo true] [set i-amarillo false]
+  ifelse [pcolor] of patch-right-and-ahead 45 1 = yellow [set e-d-amarillo true] [set e-d-amarillo false]
+  ifelse [pcolor] of patch-left-and-ahead 45 1 = yellow [set e-i-amarillo true] [set e-i-amarillo false]
+  ifelse [pcolor] of patch-right-and-ahead 135 1 = yellow [set a-d-amarillo true] [set a-d-amarillo false]
+  ifelse [pcolor] of patch-left-and-ahead 135 1 = yellow [set a-i-amarillo true] [set a-i-amarillo false]
+
+  ifelse [pcolor] of patch-ahead 1 = black [set e-vacio true] [set e-vacio false]
+  ifelse [pcolor] of patch-right-and-ahead 90 1 = black [set d-vacio true] [set d-vacio false]
+  ifelse [pcolor] of patch-left-and-ahead 90 1 = black [set i-vacio true] [set i-vacio false]
+  ifelse [pcolor] of patch-right-and-ahead 45 1 = black [set e-d-vacio true] [set e-d-vacio false]
+  ifelse [pcolor] of patch-left-and-ahead 45 1 = black [set e-i-vacio true] [set e-i-vacio false]
+  ifelse [pcolor] of patch-right-and-ahead 135 1 = black [set a-d-vacio true] [set a-d-vacio false]
+  ifelse [pcolor] of patch-left-and-ahead 135 1 = black [set a-i-vacio true] [set a-i-vacio false]
+
+  ; Si falla el posicionamiento del agente, que siga buscando un insecto
+  if d-vacio AND i-vacio AND e-vacio AND (a-i-rojo OR a-d-rojo)
+  [
+    set guiado false
+    set buscando true
+    stop
+  ]
+
+  establecer-sentido
+
+  if patch-left-and-ahead 180 1 = red
+  [
+    ifelse sentido-horario
+    [
+      if heading = 0 [set heading 90]
+      if heading = 90 [set heading 180]
+      if heading = 180 [set heading 270]
+      if heading = 270 [set heading 0]
+    ]
+    [
+      if heading = 0 [set heading 270]
+      if heading = 90 [set heading 0]
+      if heading = 180 [set heading 90]
+      if heading = 270 [set heading 180]
+    ]
+  ]
+
+  set posicionado true
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 261
 51
-2882
+4182
 2673
 -1
 -1
@@ -713,8 +1526,8 @@ GRAPHICS-WINDOW
 1
 1
 1
--100
-100
+-150
+150
 -100
 100
 0
@@ -770,6 +1583,57 @@ T
 OBSERVER
 NIL
 G
+NIL
+NIL
+1
+
+BUTTON
+91
+891
+157
+927
+NIL
+pintar
+NIL
+1
+T
+OBSERVER
+NIL
+A
+NIL
+NIL
+1
+
+BUTTON
+116
+1016
+197
+1052
+NIL
+avanzar
+NIL
+1
+T
+OBSERVER
+NIL
+D
+NIL
+NIL
+1
+
+BUTTON
+71
+1126
+162
+1162
+NIL
+identificar
+T
+1
+T
+OBSERVER
+NIL
+NIL
 NIL
 NIL
 1
