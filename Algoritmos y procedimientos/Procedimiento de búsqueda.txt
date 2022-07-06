@@ -1,0 +1,15 @@
+SI se está buscando un insecto ENTONCES
+	girar aleatoriamente a la derecha entre -10 y 10 grados
+	
+	SI (e-rojo O e-d-rojo O e-i-rojo) Y NO e-amarillo Y NO e-d-amarillo Y NO e-i-amarillo Y NO i-amarillo Y NO d-amarillo ENTONCES
+		insecto encontrado, entones, detener la búsqueda
+	SINO
+		SI (e-amarillo O e-d-amarillo O e-i-amarillo) Y NO i-amarillo Y NO d-amarillo ENTONCES
+			girar 180º
+		avanzar 1
+SINO
+	SI NO está guiado
+		guiar
+
+	SI NO está posicionado
+		posicionar

@@ -26,7 +26,6 @@ globals
 
 turtles-own
 [
-  tiempo-desde-ultimo-encuentro
   buscando ; indica si el agente está buscando insectos
   guiado ; indica si el agente ya se guió con el ángulo adecuado para bordear el insecto
   posicionado ; indica si el agente está por fin en posición para identificar al insecto
@@ -46,25 +45,25 @@ turtles-own
   sentido-establecido
   sentido-horario
 
-  e-rojo       ; indica si hay un insecto enfrente
-  d-rojo        ; indica si hay un insecto a su derecha
-  i-rojo      ; indica si hay un insecto a su izquierda
+  e-rojo              ; indica si hay un insecto enfrente
+  d-rojo              ; indica si hay un insecto a su derecha
+  i-rojo              ; indica si hay un insecto a su izquierda
   e-d-rojo            ; indica si hay un insecto enfrente tirando para su derecha
   e-i-rojo            ; indica si hay un insecto enfrente tirando para la izquierda
   a-d-rojo            ; indica si hay un insecto atrás tirando para la derecha
   a-i-rojo            ; indica si hay un insecto atrás tirando para la izquierda
 
-  e-amarillo   ; indica si hay un cuadrado de insecto marcado enfrente
-  d-amarillo    ; indica si hay un cuadrado de insecto marcado a su derecha
-  i-amarillo  ; indica si hay un cuadrado de insecto marcado a su izquierda
+  e-amarillo          ; indica si hay un cuadrado de insecto marcado enfrente
+  d-amarillo          ; indica si hay un cuadrado de insecto marcado a su derecha
+  i-amarillo          ; indica si hay un cuadrado de insecto marcado a su izquierda
   e-d-amarillo        ; indica si hay un cuadrado de insecto marcado enfrente para su derecha
   e-i-amarillo        ; indica si hay un cuadrado de insecto marcado enfrente para su izquierda
   a-d-amarillo        ; indica si hay un cuadrado de insecto marcado atrás para la derecha
   a-i-amarillo        ; indica si hay un cuadrado de insecto marcado atrás para la izquierda
 
-  e-vacio      ; indica si hay un cuadrado vacio enfrente del agente
-  d-vacio       ; indica si hay un cuadrado vacio a la derecha del agente
-  i-vacio     ; indica si hay un cuadrado vacio a la izquierda del agente
+  e-vacio             ; indica si hay un cuadrado vacio enfrente del agente
+  d-vacio             ; indica si hay un cuadrado vacio a la derecha del agente
+  i-vacio             ; indica si hay un cuadrado vacio a la izquierda del agente
   e-d-vacio           ; indica si hay un cuadrado vacio enfrente del agente para su derecha
   e-i-vacio           ; indica si hay un cuadrado vacio enfrente del agente para su izquierda
   a-d-vacio           ; indica si hay un cuadrado vacio atrás del agente a la derecha
@@ -762,11 +761,24 @@ to actualizar-sensores
 end
 
 to search
+  let posx 0
+  let posy 0
+  let esRojo true
+
+  while [esRojo = true]
+  [
+    ifelse patch-here != red
+    [set esRojo false]
+    [
+      set posx random-xcor
+      set posy random-ycor
+      setxy posx posy
+    ]
+  ]
+
   ifelse buscando = true
   [
-    ifelse tiempo-desde-ultimo-encuentro <= 20
-    [right (random 181) - 20]
-    [right (random 21) - 10]
+    right (random 21) - 10
 
     ifelse (e-rojo OR e-d-rojo OR e-i-rojo) AND NOT e-amarillo AND NOT e-d-amarillo AND NOT e-i-amarillo AND NOT i-amarillo AND NOT d-amarillo
     [
@@ -776,7 +788,6 @@ to search
       if (e-amarillo OR e-d-amarillo OR e-i-amarillo) AND NOT i-amarillo AND NOT d-amarillo [right 180]
 
       forward 1
-      set tiempo-desde-ultimo-encuentro tiempo-desde-ultimo-encuentro + 1
     ]
   ]
   [
@@ -851,9 +862,12 @@ to pintar-automatico
           set partes-pintadas-encontradas partes-pintadas-encontradas + 1
         ]
         [
-          if partes-pintadas = 46 [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
-          if partes-pintadas = 104 [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
-          if partes-pintadas = 86 [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
+          if partes-pintadas >= 46 AND partes-pintadas <= 52
+          [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
+          if partes-pintadas >= 104 AND partes-pintadas <= 110
+          [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
+          if partes-pintadas >= 86 AND partes-pintadas <= 92
+          [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
           left 90
           set buscando true
           set partes-pintadas-encontradas 0
@@ -994,9 +1008,12 @@ to pintar
           set partes-pintadas-encontradas partes-pintadas-encontradas + 1
         ]
         [
-          if partes-pintadas >= 46 AND partes-pintadas <= 60 [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
-          if partes-pintadas >= 104 AND partes-pintadas <= 120 [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
-          if partes-pintadas >= 86 AND partes-pintadas <= 100 [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
+          if partes-pintadas >= 46 AND partes-pintadas <= 60
+          [set perforadores-menores-encontrados perforadores-menores-encontrados + 1]
+          if partes-pintadas >= 104 AND partes-pintadas <= 120
+          [set gusanos-cuarteadores-encontrados gusanos-cuarteadores-encontrados + 1]
+          if partes-pintadas >= 86 AND partes-pintadas <= 100
+          [set gusanos-perforadores-encontrados gusanos-perforadores-encontrados + 1]
           left 90
           set buscando true
           set partes-pintadas-encontradas 0
@@ -1330,7 +1347,7 @@ to choque-agente-se-encierra
 
   if heading > 180 AND heading < 270
   [
-    ifelse heading > 180 AND heading < 270
+    ifelse heading > 180 AND heading < 315
     [set heading 90]
     [set heading 0]
   ]
@@ -1451,6 +1468,21 @@ to posicionar
   ; Si falla la posición, buscar otra vez desde el origen
   if posx = 0 AND posy = 0
   [
+    let esRojo true
+
+    while [esRojo = true]
+    [
+      ask (patch posx posy)
+      [
+        ifelse pcolor != red [set esRojo false]
+        [
+          set posx random-xcor
+          set posy random-ycor
+        ]
+      ]
+    ]
+
+    setxy posx posy
     set buscando true
     set guiado false
     stop
@@ -1592,7 +1624,7 @@ MONITOR
 4306
 516
 4892
-722
+717
 Perforadores menores
 perforadores-menores-encontrados
 17
@@ -1603,7 +1635,7 @@ MONITOR
 4311
 1061
 4912
-1267
+1262
 Gusanos cuarteadores
 gusanos-cuarteadores-encontrados
 17
@@ -1614,12 +1646,46 @@ MONITOR
 4316
 1656
 4902
-1862
+1857
 Gusanos perforadores
 gusanos-perforadores-encontrados
 17
 1
 50
+
+BUTTON
+66
+836
+302
+1042
+NIL
+pintar
+NIL
+1
+T
+OBSERVER
+NIL
+A
+NIL
+NIL
+1
+
+BUTTON
+56
+1071
+307
+1262
+NIL
+avanzar
+NIL
+1
+T
+OBSERVER
+NIL
+D
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

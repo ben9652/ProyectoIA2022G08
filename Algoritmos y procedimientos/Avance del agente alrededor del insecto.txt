@@ -1,0 +1,61 @@
+// Si recorre en sentido anti-horario
+
+// Esto por si el agente se llega a parar en esta situación
+SI (e-i-rojo Y i-vacio O a-i-rojo Y i-vacio) Y partes-pintadas = 0 ENTONCES
+	avanzar 1
+
+SI i-amarillo Y d-vacio Y e-vacio ENTONCES
+	avanzar 1
+
+SI a-i-amarillo Y i-vacio ENTONCES
+	girar 90º a la izquierda
+	avanzar 1
+
+SI e-amarillo Y d-vacio Y (NO a-i-amarillo O NO i-vacio O NO i-rojo-2 ENTONCES
+	girar 90º a la derecha
+	avanzar 1
+
+SI e-amarillo Y d-rojo ENTONCES
+	girar 180º
+	avanzar 1
+	girar 90º a la izquierda
+	avanzar 1
+
+SI e-amarillo Y d-amarillo Y i-amarillo ENTONCES
+	girar 180º
+
+SI d-amarillo Y i-amarillo Y e-vacio ENTONCES
+	avanzar 1
+
+//////////////////////////////////////
+
+// Si recorre en sentido horario
+
+// Esto por si el agente se llega a parar en esta situación
+SI (e-i-rojo Y i-vacio O a-i-rojo Y i-vacio) Y partes-pintadas = 0 ENTONCES
+	avanzar 1
+
+SI d-amarillo Y i-vacio Y e-vacio ENTONCES
+	avanzar 1
+
+SI a-d-amarillo Y d-vacio ENTONCES
+	girar 90º a la derecha
+	avanzar 1
+
+SI e-amarillo Y i-vacio Y (NO a-d-amarillo O NO d-vacio O NO d-rojo-2 ENTONCES
+	girar 90º a la izquierda
+	avanzar 1
+
+SI e-amarillo Y i-rojo ENTONCES
+	girar 180º
+	avanzar 1
+	girar 90º a la derecha
+	avanzar 1
+
+SI e-amarillo Y d-amarillo Y i-amarillo ENTONCES
+	girar 180º
+
+SI d-amarillo Y i-amarillo Y e-vacio ENTONCES
+	avanzar 1
+
+////////////////////////////////

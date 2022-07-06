@@ -1,0 +1,42 @@
+buscando: indicará si el agente está buscando insectos
+guiado: indica si el agente ya se guió con el ángulo adecuado para bordear el insecto
+posicionado: indica si el agente está por fin en posición para identificar al insecto
+
+partes-pintadas-encontradas: al querer pintar el agente un cuadradado ya pintado, aumenta este contador
+partes-pintadas: contador de cuadrados pintados
+
+choque-frontal: indica que el agente se topó de frente con un insecto
+choca-en-esquina-vacio-izquierda: indica que el agente se topa de frente con una esquina y que a su izquierda no hay nada
+choca-en-esquina-vacio-derecha: indica que el agente se topa de frente con una esquina y que a su derecha no hay nada
+choque-hueco-angosto: se da la señal de que el agente chocó contra un hueco angosto rodeado a los costados del insecto
+se-acerca-a-hueco: indica que el agente se acercó a un hueco
+choca-oblicuamente-derecha-nada: indica que el agente chocó de costado, habiendo nada a su derecha y habiendo parte de un insecto a su izquierda
+choca-oblicuamente-izquierda-nada: indica que el agente chocó de costado, habiendo nada a su iquierda y habiendo parte de un insecto a su derecha
+choque-oblicuo-rodeado: indica que el agente se chocó de manera torcida y rodeado del insecto
+
+sentido-establecido: indica que ya se le asignó un sentido al agente para recorrer el insecto asignado
+sentido-horario: indica que el sentido elegido es el horario; si es falso, el elegido es el anti-horario
+
+e-rojo: indica si hay un insecto enfrente
+d-rojo: indica si hay un insecto a su derecha
+i-rojo: indica si hay un insecto a su izquierda
+e-d-rojo: indica si hay un insecto enfrente tirando para su derecha
+e-i-rojo: indica si hay un insecto enfrente tirando para la izquierda
+a-d-rojo: indica si hay un insecto atrás tirando para la derecha
+a-i-rojo: indica si hay un insecto atrás tirando para la izquierda
+
+e-amarillo: indica si hay un cuadrado de insecto marcado enfrente
+d-amarillo: indica si hay un cuadrado de insecto marcado a su derecha
+i-amarillo: indica si hay un cuadrado de insecto marcado a su izquierda
+e-d-amarillo: indica si hay un cuadrado de insecto marcado enfrente para su derecha
+e-i-amarillo: indica si hay un cuadrado de insecto marcado enfrente para su izquierda
+a-d-amarillo: indica si hay un cuadrado de insecto marcado atrás para la derecha
+a-i-amarillo: indica si hay un cuadrado de insecto marcado atrás para la izquierda
+
+e-vacio: indica si hay un cuadrado vacio enfrente del agente
+d-vacio: indica si hay un cuadrado vacio a la derecha del agente
+i-vacio: indica si hay un cuadrado vacio a la izquierda del agente
+e-d-vacio: indica si hay un cuadrado vacio enfrente del agente para su derecha
+e-i-vacio: indica si hay un cuadrado vacio enfrente del agente para su izquierda
+a-d-vacio: indica si hay un cuadrado vacio atrás del agente a la derecha
+a-i-vacio: indica si hay un cuadrado vacio atrás del agente a la izquierda

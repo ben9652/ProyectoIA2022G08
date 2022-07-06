@@ -1,0 +1,13 @@
+X (mayúscula es la coordenada X del centro del insecto)
+Y (mayúscula es la coordenada Y del centro del insecto)
+
+x=X-4: y∈{Y-14}∪[Y-11,Y-8]∪[Y+4,Y+7]∪[Y+11,Y+14]
+x=X-3: y∈{Y-14}∪[Y-11,Y-8]∪[Y+4,Y+7]∪[Y+11,Y+14]
+x=X-2: y∈[Y-21,Y+18]
+x=X-1: y∈[Y-19,Y+16]
+x=X:   y∈[Y-19,Y+18]
+x=X+1: y∈[Y-19,Y+18]
+x=X+2: y∈[Y-19,Y+16]
+x=X+3: y∈[Y-21,Y+18]
+x=X+4: y∈{Y-14}∪[Y-11,Y-8]∪[Y+4,Y+7]∪[Y+11,Y+14]
+x=X+5: y∈{Y-14}∪[Y-11,Y-8]∪[Y+4,Y+7]∪[Y+11,Y+14]

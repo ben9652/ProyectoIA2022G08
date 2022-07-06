@@ -1,0 +1,11 @@
+SI encuentra_insecto = FALSE ENTONCES
+	avanzar_mientras_se_dan_pequeños_giros
+
+SI encuentra_insecto = TRUE ENTONCES
+	parar
+	guiar_direccion
+	posicionar
+
+MIENTRAS buscando = FALSE ENTONCES
+	marcar
+	avanzar_sobre_el_insecto

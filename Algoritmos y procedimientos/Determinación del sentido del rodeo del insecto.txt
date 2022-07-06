@@ -1,0 +1,24 @@
+SI NO e-rojo
+   SI heading = 0 O
+      heading = 90 O
+      heading = 180 O
+      heading = 270 O
+   ENTONCES
+      SI d-rojo O e-d-rojo ENTONCES
+         sentido-horario = true
+      SI i-rojo O e-i-rojo ENTONCES
+	 sentido-horario = false
+SINO
+   SI d-rojo Y i-vacio ENTONCES
+      sentido-horario = true
+   SI i-rojo Y d-vacio ENTONCES
+      sentido-horario = false
+
+   ENTERO: sentido
+   sentido = random(0,1)
+   SI sentido = 0 ENTONCES
+      sentido-horario = false
+   SINO
+      sentido-horario = true
+
+sentido-establecido = true

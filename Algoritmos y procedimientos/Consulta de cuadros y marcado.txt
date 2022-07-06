@@ -1,0 +1,48 @@
+SI i-rojo ENTONCES
+   pintar de amarillo izquierda
+   partes-pintadas++
+   partes-pintadas-encontradas = 0
+
+SI d-rojo ENTONCES
+   pintar de amarillo derecha
+   partes-pintadas++
+   partes-pintadas-encontradas = 0
+
+SI e-rojo ENTONCES
+   pintar de amarillo enfrente
+   partes-pintadas++
+   partes-pintadas-encontradas = 0
+
+SI i-amarillo ENTONCES
+   SI partes-pintadas-encontradas <= 10 ENTONCES
+      partes-pintadas-encontradas++
+   SINO
+      SI partes-pintadas >= 46 Y partes-pintadas <= 52 ENTONCES
+         perforadores-menores-encontrados++
+      SI partes-pintadas >= 104 Y partes-pintadas <= 110 ENTONCES
+	 gusanos-cuarteadores-encontrados++
+      SI partes-pintadas >= 86 Y partes-pintadas <= 92 ENTONCES
+	 gusanos-perforadores-encontrados++
+      girar 90º a la derecha
+      volver a estado de búsqueda
+      partes-pintadas-encontradas = 0
+      partes-pintadas = 0
+      guiado = false
+      posicionado = false
+
+SI d-amarillo ENTONCES
+   SI partes-pintadas-encontradas <= 10 ENTONCES
+      partes-pintadas-encontradas++
+   SINO
+      SI partes-pintadas >= 46 Y partes-pintadas <= 52 ENTONCES
+         perforadores-menores-encontrados++
+      SI partes-pintadas >= 104 Y partes-pintadas <= 110 ENTONCES
+	 gusanos-cuarteadores-encontrados++
+      SI partes-pintadas >= 86 Y partes-pintadas <= 92 ENTONCES
+	 gusanos-perforadores-encontrados++
+      girar 90º a la izquierda
+      volver a estado de búsqueda
+      partes-pintadas-encontradas = 0
+      partes-pintadas = 0
+      guiado = false
+      posicionado = false

@@ -1,0 +1,31 @@
+SI e-rojo Y d-vacio Y i-vacio Y (e-d-vacio O e-i-vacio) ENTONCES
+	EJECUTAR choca-de-frente
+	guiado = true
+
+SI e-rojo Y d-rojo Y i-vacio Y e-d-vacio Y e-i-vacio ENTONCES
+	EJECUTAR choca-en-esquina-de-hueco-con-vacio-izquierdo
+	guiado = true
+
+SI e-rojo Y i-rojo Y d-vacio Y e-i-vacio Y e-d-vacio ENTONCES
+	EJECUTAR choca-en-esquina-de-hueco-con-vacio-derecho
+	guiado = true
+
+SI e-rojo Y d-rojo Y i-rojo Y e-d-rojo Y e-i-rojo Y a-d-rojo Y a-i-rojo ENTONCES
+	EJECUTAR choca-de-frente-en-hueco
+	guiado = true
+
+SI e-i-rojo Y e-d-rojo Y a-i-vacio Y a-d-vacio ENTONCES
+	EJECUTAR acercamiento-a-hueco
+	guiado = true
+
+SI e-i-rojo Y e-d-vacio Y d-vacio ENTONCES
+	EJECUTAR choque-oblicuo-derecha-nada
+	guiado = true
+
+SI e-d-rojo Y e-i-vacio Y i-vacio ENTONCES
+	EJECUTAR choque-oblicuo-izquierda-nada
+	guiado = true
+
+SI e-rojo Y d-rojo Y i-rojo Y e-d-rojo Y e-i-rojo Y a-d-vacio Y a-i-vacio ENTONCES
+	EJECUTAR choque-agente-se-encierra
+	guiado = true

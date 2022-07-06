@@ -1,0 +1,23 @@
+La propiedad "heading" indica hacia dónde está apuntando el agente.
+Esta propiedad se basa en el ángulo de giro. Fijando los 0º para el norte, y
+avanzando el giro hacia la derecha.
+De esta manera:
+	- heading = 45 indica al agente que apunte hacia el nor-este
+	- heading = 90 indica al agente que apunte hacia el este
+	- heading = 135 indica al agente que apunte hacia el sur-este
+	- heading = 180 indica al agente que apunte hacia el sur
+	- heading = 225 indica al agente que apunte hacia el sur-oeste
+	- heading = 270 indica al agente que apunte hacia el oeste
+	- heading = 315 indica al agente que apunte hacia el nor-oeste
+
+SI heading > 45 Y heading < 135 ENTONCES
+	heading = 270
+
+SI heading > 135 Y heading < 225 ENTONCES
+	heading = 0
+
+SI heading > 225 Y heading < 315 ENTONCES
+	heading = 90
+
+SI heading > 315 Y heading < 360 O heading >= 0 Y heading < 45 ENTONCES
+	heading = 180
